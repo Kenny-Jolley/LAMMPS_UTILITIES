@@ -7,7 +7,7 @@ Clone the repository to a directory of your choice, and add this directory to yo
 
 To make the python scripts executable, run
 
-`chmod +x md_*`
+`chmod +x lammps_*`
 
 
 ## Usage
