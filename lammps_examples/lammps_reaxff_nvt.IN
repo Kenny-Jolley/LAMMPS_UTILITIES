@@ -1,0 +1,152 @@
+# 
+#          NVT simulation using the ReaxFF potential
+#
+#                     Kenny Jolley  Feb 2019
+
+# 2 Simulation blocks:
+#   - Initial relaxation of the system (to move past transients)
+#   - Equilibrate in NVT and output running average quantities
+
+# Requires:
+#  ffield
+#  lattice file with the mass defined
+
+# -----------------------------------
+#  Configurable variables
+# -----------------------------------
+
+variable input_file   string  'lammps.lattice.dat'    #  Input filename of the lattice
+
+variable av_temp      equal   300        #  System temperature [K] 
+variable init_eq_time equal    10.0      #  Initial Equilibration time [ps]
+
+variable output_freq  equal    0.5       #  Output period of data in log files [ps]
+variable output_av    equal    1.0       #  Running_average output time period [ps]
+
+variable dump_freq    equal    1.0       #  Output frequency of dump files containing atom coordinates [ps]
+
+
+# Should NOT need to change these variables
+
+variable sim_timestep equal     0.0005  #  Timestep to use in the MD simulations [ps]
+variable random_seed  equal      52253  #  Seed of the random number generator
+
+# -----------------------------------
+#  Simulation commands
+# -----------------------------------
+
+#
+# ReaxFF potential settings
+#
+
+dimension       3
+boundary        p p p 
+units           real
+
+atom_style  charge
+read_data       ${input_file}
+
+pair_style  reax/c NULL
+pair_coeff  * * ffield C
+
+neighbor       2. bin
+neigh_modify   every 10 delay 0 check no
+fix            99 all qeq/reax 1 0.0 10.0 1e-6 reax/c
+
+#
+# Initial NVT equilibration
+#
+print " "
+print "-----------------------------------"
+print "  Begin Initial NVT equilibration"
+print "-----------------------------------"
+print " "
+
+print "Thermalising at ${av_temp} K"
+print "Thermalisation time ${init_eq_time} ps"
+
+# Set timestep
+variable reaxff_sim_timestep equal (${sim_timestep}*1000.0)
+timestep ${reaxff_sim_timestep}
+
+variable num_timesteps equal  ${init_eq_time}/${sim_timestep}
+
+print "Equilibration timesteps required = ${num_timesteps} "
+print " "
+
+# Print box info
+variable Length_x equal (lx/10)
+variable Length_y equal (ly/10)
+variable Length_z equal (lz/10)
+print "-- Fixed box --"
+print "Box length x: ${Length_x} nm"
+print "Box length y: ${Length_y} nm"
+print "Box length z: ${Length_z} nm"
+variable myvol equal (vol/1000)
+print "Box volume  : ${myvol} nm^3"
+variable mydensity equal density
+print "Density     : ${mydensity} g/cm^3"
+print " "
+
+# NVT fix
+fix      1  all nvt temp ${av_temp} ${av_temp} 50.0
+
+
+# Output data format of the log file
+thermo_style    custom time etotal temp press pxx pyy pzz
+# Output frequency of the log file
+variable thermo_freq equal ${output_freq}/${sim_timestep}
+thermo          ${thermo_freq}
+thermo_modify lost ignore flush yes
+
+variable doubleT  equal  ${av_temp}*2
+velocity all create ${doubleT} ${random_seed} dist gaussian
+
+
+# run equilibration simulation for defined no. of timesteps.
+run		${num_timesteps}
+
+print " "
+print " Initial relaxation complete. "
+print " "
+
+
+#
+# Equilibrate in NVT
+#
+print " "
+print "-----------------------------------------------"
+print "  Equilibrate in NVT - Outputting running averages to file"
+print "-----------------------------------------------"
+print " "
+
+reset_timestep 0
+
+# Measure average energy, pressure and temp
+variable myenergy equal etotal
+variable mypress  equal press
+variable mypxx equal pxx
+variable mypyy equal pyy
+variable mypzz equal pzz
+variable Temperature equal temp
+variable avsteps equal (v_output_av/${sim_timestep})
+fix 2 all ave/time 1 ${avsteps} ${avsteps} v_myenergy v_Temperature v_mypress v_mypxx v_mypyy v_mypzz ave running file Running_average.txt format %20.16g title1 "Running average data for fix 2"
+
+# Define a variable v_simtime, and set equal to simulation time for each atom
+variable simtime atom time
+# Define computes for the ke and pe of each atom
+compute ke all ke/atom
+compute pe all pe/atom
+
+
+# Write lattice to output file, custom column format.
+variable dump_freqsteps equal (v_dump_freq/${sim_timestep})
+dump            6 all custom ${dump_freqsteps} dump*.dat.gz id element x y z v_simtime c_ke c_pe
+# use LBOMD convention for atom names
+#dump_modify     6 element C_
+
+
+# run equilibration simulation for defined no. of timesteps.
+run		2000000000
+
+
