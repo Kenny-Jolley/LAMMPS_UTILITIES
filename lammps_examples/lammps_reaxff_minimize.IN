@@ -1,0 +1,106 @@
+# 
+#          Minimise using the ReaxFF potential
+#
+#                Kenny Jolley  Feb 2019
+
+# Just reads in a lattice data file and minimises using the chosen method.
+
+# Requires:
+#  ffield
+#  lattice file with the mass defined
+
+# -----------------------------------
+#  Configurable variables
+# -----------------------------------
+
+variable input_file   string  'lammps.lattice.dat'    #  Input filename of the lattice
+
+variable min_method   string  'cg'         #  The minimisation method, chose from: cg, htfn, sd, quickmin, fire
+variable relax_box    equal    true        #  Allow box dimensions to change during relaxation?  (True/False)
+variable force_tol    equal    1.0e-10     #  Minimiser stopping tolerance for force (force units)
+variable max_iters    equal    9999999     #  Maximum no. steps of the minimiser before quitting
+
+variable dump_freq    equal    1.0         #  Output frequency of dump files containing atom coordinates [ps]
+
+
+# Should NOT need to change these variables
+variable sim_timestep equal     0.0005  #  Timestep to use in the MD simulations [ps]
+
+# -----------------------------------
+#  Simulation commands
+# -----------------------------------
+
+#
+# ReaxFF potential settings
+#
+
+dimension       3
+boundary        p p p 
+units           real
+
+atom_style  charge
+read_data       ${input_file}
+
+pair_style  reax/c NULL
+pair_coeff  * * ffield C
+
+neighbor       2. bin
+neigh_modify   every 10 delay 0 check no
+fix            99 all qeq/reax 1 0.0 10.0 1e-6 reax/c
+
+
+#
+# Set the default NVE integrator 
+#
+
+fix		1 all nve
+
+# Set timestep
+variable reaxff_sim_timestep equal (${sim_timestep}*1000.0)
+timestep ${reaxff_sim_timestep}
+
+
+
+# Relax box?
+if "${relax_box}" then &
+ "fix 2 all box/relax aniso 0.0 vmax 0.001"
+
+
+
+
+# Output data format of the log file
+thermo_style    custom step ke pe etotal temp press lx ly lz vol density fmax fnorm
+# Output frequency of the log file
+thermo          100
+thermo_modify lost ignore flush yes
+
+
+
+# Define a variable v_simtime, and set equal to simulation time for each atom
+variable simtime atom time
+# Define computes for the ke and pe of each atom
+compute ke all ke/atom
+compute pe all pe/atom
+
+
+# Write lattice to output file, custom column format.
+dump            6 all custom 1000 dump*.dat.gz id element x y z v_simtime c_ke c_pe
+# use LBOMD convention for atom names
+dump_modify     6 element C_
+
+
+min_style ${min_method}
+
+##  Minimize
+#minimize etol ftol maxiter maxeval
+#
+#    etol = stopping tolerance for energy (unitless)
+#    ftol = stopping tolerance for force (force units)
+#    maxiter = max iterations of minimizer
+#    maxeval = max number of force/energy evaluations
+
+minimize 0.0 ${force_tol} ${max_iters} 10000000000
+
+
+
+
