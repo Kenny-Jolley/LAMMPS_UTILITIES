@@ -20,11 +20,14 @@ variable relax_box    equal    true        #  Allow box dimensions to change dur
 variable force_tol    equal    1.0e-10     #  Minimiser stopping tolerance for force (force units)
 variable max_iters    equal    9999999     #  Maximum no. steps of the minimiser before quitting
 
-variable dump_freq    equal    1.0         #  Output frequency of dump files containing atom coordinates [ps]
+variable output_freq  equal    0.05        #  Output period of data in log files [ps]
+variable dump_freq    equal    0.05        #  Output frequency of dump files containing atom coordinates [ps]
 
+variable atomjiggle   equal    0.01        # Define the amount of random jiggle for atoms [Ang] # This prevents atoms from staying on saddle points
 
 # Should NOT need to change these variables
 variable sim_timestep equal     0.0005  #  Timestep to use in the MD simulations [ps]
+variable random_seed  equal      33466  #  Seed of the random number generator
 
 # -----------------------------------
 #  Simulation commands
@@ -64,12 +67,15 @@ if "${relax_box}" then &
  "fix 2 all box/relax aniso 0.0 vmax 0.001"
 
 
+# Apply the amount of random jiggle for atoms
+displace_atoms all random ${atomjiggle} ${atomjiggle} ${atomjiggle} ${random_seed} units box
 
 
 # Output data format of the log file
-thermo_style    custom step ke pe etotal temp press lx ly lz vol density fmax fnorm
+thermo_style    custom time step ke pe etotal temp press lx ly lz vol density fmax fnorm
 # Output frequency of the log file
-thermo          100
+variable thermo_freq equal ${output_freq}/${sim_timestep}
+thermo ${thermo_freq}
 thermo_modify lost ignore flush yes
 
 
@@ -82,7 +88,8 @@ compute pe all pe/atom
 
 
 # Write lattice to output file, custom column format.
-dump            6 all custom 1000 dump*.dat.gz id element x y z v_simtime c_ke c_pe
+variable dump_freqsteps equal (v_dump_freq/${sim_timestep})
+dump            6 all custom ${dump_freqsteps} dump*.dat.gz id element x y z v_simtime c_ke c_pe
 # use LBOMD convention for atom names
 dump_modify     6 element C_
 
