@@ -15,9 +15,11 @@ Clone the repository to a directory of your choice:
 
 Ensure that this directory is added to your path:  
 tcsh:  
-`setenv PATH ${PATH}:$HOME/git/LAMMPS_UTILITIES`  
+`setenv PATH ${PATH}:$HOME/git/LAMMPS_UTILITIES/utilities`  
+`setenv PATH ${PATH}:$HOME/git/LAMMPS_UTILITIES/carbon`  
 bash:  
-`export PATH=$PATH:$HOME/git/LAMMPS_UTILITIES` 
+`export PATH=$PATH:$HOME/git/LAMMPS_UTILITIES/utilities` 
+`export PATH=$PATH:$HOME/git/LAMMPS_UTILITIES/carbon` 
 
 To make sure the python scripts executable, run:  
 `chmod +x lammps_*`
