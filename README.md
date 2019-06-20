@@ -10,25 +10,27 @@ This code requires [Python](http://www.python.org) to run. Currently Python 2.7,
 ## Installation
 
 Clone the repository to a directory of your choice:
-
-`git clone https://github.com/Kenny-Jolley/LAMMPS_UTILITIES.git `
-
+~~~
+ git clone https://github.com/Kenny-Jolley/LAMMPS_UTILITIES.git
+~~~
 Ensure that each directory is added to your path.  
 e.g. if you created a git directory in your home directory, add these lines for a tcsh shell:
 
 .tcshrc:  
-`setenv PATH ${PATH}:$HOME/git/LAMMPS_UTILITIES/utilities`  
-`setenv PATH ${PATH}:$HOME/git/LAMMPS_UTILITIES/carbon`  
-
+~~~
+setenv PATH ${PATH}:$HOME/git/LAMMPS_UTILITIES/utilities
+setenv PATH ${PATH}:$HOME/git/LAMMPS_UTILITIES/carbon
+~~~
 Or for bash:
-
+~~~
 .bashrc:  
-`export PATH=$PATH:$HOME/git/LAMMPS_UTILITIES/utilities`  
-`export PATH=$PATH:$HOME/git/LAMMPS_UTILITIES/carbon` 
-
+export PATH=$PATH:$HOME/git/LAMMPS_UTILITIES/utilities
+export PATH=$PATH:$HOME/git/LAMMPS_UTILITIES/carbon
+~~~
 To make sure the python scripts executable, run:  
-`chmod +x lammps_*`
-
+~~~
+chmod +x lammps_*
+~~~
 
 ## Usage
 
