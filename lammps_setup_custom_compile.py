@@ -7,7 +7,8 @@
 # verbose = True   , prints some comments to the screen.
 # use_voro = True   , Includes the voro++ package.  This must be installed before compiling lammps
 # use_modified_reaxff = True   , Includes the modified version of user-reax  with the carbon spline
-
+# use_intel = True   , Includes the USER-INTEL package and applies optimised settings for the intel compiler
+#           = False  , Does not include the USER-INTEL package and applies optimised settings for the gcc compiler
 
 #  Kenny Jolley, June 2019
 
@@ -21,13 +22,14 @@ def lammps_setup_custom_compile(**kwargs):
     verbose = kwargs.get('verbose', False)
     use_voro = kwargs.get('use_voro', False)
     use_modified_reaxff = kwargs.get('use_modified_reaxff', False)
+    use_intel = kwargs.get('use_intel', False)
 
     if(verbose):
         print("\n> Running")
         print(" verbose  =  " + str(verbose) )
         print(" use_voro =  " + str(use_voro) )
         print(" use_modified_reaxff =  " + str(use_modified_reaxff) )
-
+        print(" use_intel =  " + str(use_intel) )
 
     # make sure we are on the stable branch and update.
     print("> Checkout the stable branch and update")
@@ -103,7 +105,8 @@ def lammps_setup_custom_compile(**kwargs):
     os.system("make yes-USER-SMTBQ")
     os.system("make yes-USER-SPH")
     os.system("make yes-USER-TALLY")
-    os.system("make yes-USER-INTEL")
+    if(use_intel):
+        os.system("make yes-USER-INTEL")   # This needs intel libraries to work
 
 
     # remove any deprecated src files
@@ -135,7 +138,8 @@ def lammps_setup_custom_compile(**kwargs):
     # Generate file
     print("> Generating: MAKE/MINE/Makefile.kj_mpi ")
     outfile = open("MAKE/MINE/Makefile.kj_mpi", 'w')
-    outfile.write("""# mpi = MPI with its default compiler, mac, jpeg, png, ffmpeg, intel cpus
+    if(use_intel):
+        outfile.write("""# mpi = MPI with its default compiler, mac, jpeg, png, ffmpeg, intel cpus
 SHELL = /bin/sh
 
 # ---------------------------------------------------------------------
@@ -144,13 +148,17 @@ SHELL = /bin/sh
 
 CC =         mpicxx
 # Default
-# OPTFLAGS = -xHost -O3
+# OPTFLAGS = -O3
 # CCFLAGS  = $(OPTFLAGS)
 #
 
-#Intel optimised
+# Intel optimised (mac, magrid)
 OPTFLAGS =   -xHost -O3 -fp-model fast=2 -no-prec-div -qoverride-limits -L$(MKLROOT)/lib/ -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 CCFLAGS  =   -DLAMMPS_MEMALIGN=64 -fno-alias -ansi-alias -restrict -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS)
+
+# Intel optimised (athena)
+# OPTFLAGS =  -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits -L$(MKLROOT)/lib/intel64/ -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
+# CCFLAGS =    -qopenmp -DLAMMPS_MEMALIGN=64 -qno-offload -fno-alias -ansi-alias -restrict -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS)
 
 
 SHFLAGS =    -fPIC
@@ -263,6 +271,134 @@ fastdep.exe: ../DEPEND/fastdep.c
 sinclude .depend
 """)
 
+    else:
+        outfile.write("""# mpi = MPI with its default compiler, mac, jpeg, png, ffmpeg, g++
+SHELL = /bin/sh
+
+# ---------------------------------------------------------------------
+# compiler/linker settings
+# specify flags and libraries needed for your compiler
+
+CC =         mpicxx
+# Default
+OPTFLAGS =  -O3 -march=native -mtune=native
+CCFLAGS  = $(OPTFLAGS)
+#
+
+SHFLAGS =    -fPIC
+DEPFLAGS =   -M
+
+LINK =       mpicxx
+
+LINKFLAGS =  $(OPTFLAGS)
+
+
+
+LIB =
+SIZE =       size
+
+ARCHIVE =    ar
+ARFLAGS =    -rc
+SHLIBFLAGS = -shared
+
+# ---------------------------------------------------------------------
+# LAMMPS-specific settings, all OPTIONAL
+# specify settings for LAMMPS features you will use
+# if you change any -D setting, do full re-compile after "make clean"
+
+# LAMMPS ifdef settings
+# see possible settings in Section 2.2 (step 4) of manual
+
+LMP_INC =    -DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64 -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_FFMPEG
+
+# MPI library
+# see discussion in Section 2.2 (step 5) of manual
+# MPI wrapper compiler/linker can provide this info
+# can point to dummy MPI library in src/STUBS as in Makefile.serial
+# use -D MPICH and OMPI settings in INC to avoid C++ lib conflicts
+# INC = path for mpi.h, MPI compiler settings
+# PATH = path for MPI library
+# LIB = name of MPI library
+
+MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
+MPI_PATH =
+MPI_LIB =
+
+# FFT library
+# see discussion in Section 2.2 (step 6) of manual
+# can be left blank to use provided KISS FFT library
+# INC = -DFFT setting, e.g. -DFFT_FFTW, FFT compiler settings
+# PATH = path for FFT library
+# LIB = name of FFT library
+
+FFT_INC =
+FFT_PATH =
+FFT_LIB =
+
+# JPEG and/or PNG library
+# see discussion in Section 2.2 (step 7) of manual
+# only needed if -DLAMMPS_JPEG or -DLAMMPS_PNG listed with LMP_INC
+# INC = path(s) for jpeglib.h and/or png.h
+# PATH = path(s) for JPEG library and/or PNG library
+# LIB = name(s) of JPEG library and/or PNG library
+
+JPG_INC = -I/opt/local/include
+JPG_PATH = -L/opt/local/lib
+JPG_LIB = -ljpeg -lpng
+
+# ---------------------------------------------------------------------
+# build rules and dependencies
+# do not edit this section
+
+include    Makefile.package.settings
+include    Makefile.package
+
+EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
+EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB)
+EXTRA_CPP_DEPENDS = $(PKG_CPP_DEPENDS)
+EXTRA_LINK_DEPENDS = $(PKG_LINK_DEPENDS)
+
+# Path to src files
+
+vpath %.cpp ..
+vpath %.h ..
+
+# Link target
+
+$(EXE):\t$(OBJ) $(EXTRA_LINK_DEPENDS)
+\t$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
+\t$(SIZE) $(EXE)
+
+# Library targets
+
+lib:\t$(OBJ) $(EXTRA_LINK_DEPENDS)
+\t$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+shlib:\t$(OBJ) $(EXTRA_LINK_DEPENDS)
+\t$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \\
+\t$(OBJ) $(EXTRA_LIB) $(LIB)
+
+# Compilation rules
+
+%.o:%.cpp
+\t$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
+
+# Individual dependencies
+
+depend : fastdep.exe $(SRC)
+\t@./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
+
+fastdep.exe: ../DEPEND/fastdep.c
+\tcc -O -o $@ $<
+
+sinclude .depend
+""")
+    
+    
+    
+
+
 
     # Copy customised reax/c source files to the src directory
     if(use_modified_reaxff):
@@ -295,7 +431,8 @@ sinclude .depend
 
     print("> ")
     print("> Setup of lammps source directory is complete.")
-    print("> Check the output above is as expected.")
+    print("> You should check that the Makefile in /MAKE/MINE is correct for the machine you are working on.")
+    print("> Check the output above is also as expected.")
     print("> ")
     print("> You can now compile lammps (using 4 cores):")
     print("> make -j 4 kj_mpi  ")
@@ -311,6 +448,7 @@ sinclude .depend
 if __name__ == '__main__':
     use_voro=False
     use_modified_reaxff=False
+    use_intel= False
     
     print("  +------------------------------------------+")
     print("  |        Lammps setup compile script       |")
@@ -367,5 +505,21 @@ if __name__ == '__main__':
         use_modified_reaxff = True
     
     print("   ")
+
+    print("   ")
+    print("> This script generates a makefile.")
+    print("> You need to choose between INTEL or GCC compiler options.")
+    print("> Choosing INTEL also includes the USER-INTEL package.")
+    if sys.version_info[0] < 3:
+        user_choice = raw_input('Do you wish to use the INTEL compiler options? (y/n)?: ')
+    else:
+        user_choice = input('Do you wish to use the INTEL compiler options? (y/n)?: ')
+    if ((user_choice == 'yes') or (user_choice == 'y') ):
+        use_intel = True
+    
+    print("   ")
+
+
+
     # call the lammps_setup_custom_compile function
-    lammps_setup_custom_compile(verbose=True, use_voro=use_voro, use_modified_reaxff=use_modified_reaxff)
+    lammps_setup_custom_compile(verbose=True, use_voro=use_voro, use_modified_reaxff=use_modified_reaxff, use_intel=use_intel)
