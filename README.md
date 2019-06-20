@@ -22,8 +22,9 @@ setenv PATH ${PATH}:$HOME/git/LAMMPS_UTILITIES/utilities
 setenv PATH ${PATH}:$HOME/git/LAMMPS_UTILITIES/carbon
 ~~~
 Or for bash:
-~~~
+
 .bashrc:  
+~~~
 export PATH=$PATH:$HOME/git/LAMMPS_UTILITIES/utilities
 export PATH=$PATH:$HOME/git/LAMMPS_UTILITIES/carbon
 ~~~
