@@ -1,5 +1,5 @@
 # LAMMPS_UTILITIES
-A collection of utility scripts for lammps
+A collection of utility scripts for lammps.
 
 
 ## Requirements
@@ -13,12 +13,17 @@ Clone the repository to a directory of your choice:
 
 `git clone https://github.com/Kenny-Jolley/LAMMPS_UTILITIES.git `
 
-Ensure that this directory is added to your path:  
-tcsh:  
+Ensure that each directory is added to your path.  
+e.g. if you created a git directory in your home directory, add these lines for a tcsh shell:
+
+.tcshrc:  
 `setenv PATH ${PATH}:$HOME/git/LAMMPS_UTILITIES/utilities`  
 `setenv PATH ${PATH}:$HOME/git/LAMMPS_UTILITIES/carbon`  
-bash:  
-`export PATH=$PATH:$HOME/git/LAMMPS_UTILITIES/utilities` 
+
+Or for bash:
+
+.bashrc:  
+`export PATH=$PATH:$HOME/git/LAMMPS_UTILITIES/utilities`  
 `export PATH=$PATH:$HOME/git/LAMMPS_UTILITIES/carbon` 
 
 To make sure the python scripts executable, run:  
@@ -29,11 +34,17 @@ To make sure the python scripts executable, run:
 
 The scripts can be called directly and passed options on the command line, or imported into other scripts.
 
-
-### md setup
-
+For example:
 `lammps_gen_reaxff_ffield_carbon_may2016.py`  
 This function simply generates the ffield file for the May 2016 version of the reaxff potential in the current directory.
+
+### utilities
+
+The utilities folder contains scripts for setting up lammps and manipulating the lammps input and output files.
+
+### carbon
+
+This folder contains scripts for setting up carbon systems.
 
 
 
