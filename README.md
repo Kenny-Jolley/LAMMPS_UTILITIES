@@ -46,5 +46,7 @@ The utilities folder contains scripts for setting up lammps and manipulating the
 
 This folder contains scripts for setting up carbon systems.
 
+### lammps_examples
 
+This folder contains a collection of input scripts for simple molecular dynamics simulations.
 
