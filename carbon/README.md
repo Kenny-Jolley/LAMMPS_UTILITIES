@@ -70,9 +70,9 @@ lammps_gen_random_lattice_C_atomic.py 5000 2.5
 ~~~
 Where the first number is the number of atoms to generate and the second number is the density in g/cm<sup>3</sup>.
 
+#### `lammps_gen_reaxff_ffield_carbon_may2016`  
 
-
-
+This function simply generates the ffield file for the May 2016 version of the reaxff potential in the current directory.
 
 
 
