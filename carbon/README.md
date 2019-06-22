@@ -23,10 +23,56 @@ Or passed instructions on the commandline:
 ~~~
 lammps_gen_graphite_airebo.py 10 10 10
 ~~~
-Generates a `10 x 10 x 10` unit cell lattice with ab stacking
+Generates a `10 x 10 x 10` unit cell lattice with `ab` stacking.
 ~~~
 lammps_gen_graphite_airebo.py 10 10 10 abc
 ~~~
-Generates a `10 x 10 x 10` unit cell lattice with `abc` stacking
+Generates a `10 x 10 x 10` unit cell lattice with `abc` stacking.  You can generate any stacking sequence by substituting `abc` with any sequence containing the letters `a`,`b` and `c`.
+
+
+#### `lammps_gen_graphite_reaxff.py`  
+
+This function simply generates a graphite lattice for the May 2016 ReaxFF forcefield.
+The output is a lammps data file in charge format (this is the required format for the ReaxFF code).
+
+Lattice parameters are set to:
+~~~
+a_const = 2.433  , the 'a' lattice constant
+c_const = 3.2567 , the 'c' lattice constant
+~~~
+
+The script can be run interactively with:
+~~~
+lammps_gen_graphite_reaxff.py
+~~~
+Or passed instructions on the commandline:
+~~~
+lammps_gen_graphite_reaxff.py 10 10 10
+~~~
+Generates a `10 x 10 x 10` unit cell lattice with `ab` stacking.
+~~~
+lammps_gen_graphite_reaxff.py 10 10 10 abc
+~~~
+Generates a `10 x 10 x 10` unit cell lattice with `abc` stacking. You can generate any stacking sequence by substituting `abc` with any sequence containing the letters `a`,`b` and `c`.
+
+
+#### `lammps_gen_random_lattice_C_atomic.py`  
+
+This function generates a random lattice of carbon atoms.  The minimum separation between the carbon atoms is 1 Angstrom.
+Output file is in lammps atomic format.
+The script can be run interactively with:
+~~~
+lammps_gen_random_lattice_C_atomic.py
+~~~
+Or passed instructions on the commandline:
+~~~
+lammps_gen_random_lattice_C_atomic.py 5000 2.5
+~~~
+Where the first number is the number of atoms to generate and the second number is the density in g/cm<sup>3</sup>.
+
+
+
+
+
 
 
