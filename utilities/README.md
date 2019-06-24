@@ -12,7 +12,7 @@ Examples:
 ~~~
 lammps_convert_output_to_XYZ.py  filename.txt
 lammps_convert_output_to_XYZ.py  dump.dat.gz
-lammps_convert_output_to_XYZ.py  dump*.dat.gz
+lammps_convert_output_to_XYZ.py  'dump*.dat.gz'
 ~~~
 
 #### `lammps_lattice_relabel_atom_ids.py`
