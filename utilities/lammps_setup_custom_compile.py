@@ -280,10 +280,10 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =         mpicxx
-# Default
-OPTFLAGS =  -O3 -march=native -mtune=native
+# Default, can include -xHost, but be careful with this on hydra
+#          because compute-12 is different to the login nodes.
+OPTFLAGS =  -O3
 CCFLAGS  = $(OPTFLAGS)
-#
 
 SHFLAGS =    -fPIC
 DEPFLAGS =   -M
