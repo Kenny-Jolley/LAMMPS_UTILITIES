@@ -280,8 +280,9 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =         mpicxx
-# Default, can include -xHost, but be careful with this on hydra
+# Default, If mpi calls intel compilers, can include -xHost, but be careful with this on hydra
 #          because compute-12 is different to the login nodes.
+#          Use -march=native -mtune=native  for gcc
 OPTFLAGS =  -O3
 CCFLAGS  = $(OPTFLAGS)
 
