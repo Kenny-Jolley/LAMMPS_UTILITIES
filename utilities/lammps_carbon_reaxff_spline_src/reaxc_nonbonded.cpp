@@ -26,17 +26,18 @@
   
   Modified to include a hard coded spline to ZBL at short range 
   for pure carbon systems.
-  Kenny Jolley  Jan 2017
+  Kenny Jolley  Sept 2019
   kenny.jolley@gmail.com
   
   Work in progress
   
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
-#include "reaxc_types.h"
 #include "reaxc_nonbonded.h"
-#include "reaxc_bond_orders.h"
+#include <cmath>
+#include "pair.h"
+#include "reaxc_defs.h"
+#include "reaxc_types.h"
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
 
