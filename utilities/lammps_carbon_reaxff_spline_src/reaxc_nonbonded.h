@@ -57,14 +57,14 @@
 // Spline parameters for the Carbon-Carbon interaction
 // C_ - C_  (0.25 - 0.95) [kcal/mol]
 
-#define FF1CC    14.02903844437025
-#define FF2CC   -38.95839820411169
-#define FF3CC   139.8615432895962
-#define FF4CC  -286.0149594211718
-#define FF5CC   262.38971755282610
-#define FF6CC   -86.98897178124618
+#define FF1CC    13.64101441
+#define FF2CC   -33.50452187
+#define FF3CC   111.2579538
+#define FF4CC  -217.9935929
+#define FF5CC   191.6995812
+#define FF6CC   -60.77223097
 #define AC_C_     0.25
-#define BC_C_     0.95
+#define BC_C_     1.0
 
 
                                       
