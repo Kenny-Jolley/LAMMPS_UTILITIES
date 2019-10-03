@@ -396,11 +396,19 @@ fastdep.exe: ../DEPEND/fastdep.c
 sinclude .depend
 """)
     
+    # copy kolmogorov_crespi, lebedeva and drip potentials from USER-MISC
+    shutil.copy("USER-MISC/pair_kolmogorov_crespi_full.cpp", "pair_kolmogorov_crespi_full.cpp")
+    shutil.copy("USER-MISC/pair_kolmogorov_crespi_full.h", "pair_kolmogorov_crespi_full.h")
+    shutil.copy("USER-MISC/pair_kolmogorov_crespi_z.cpp", "pair_kolmogorov_crespi_z.cpp")
+    shutil.copy("USER-MISC/pair_kolmogorov_crespi_z.h", "pair_kolmogorov_crespi_z.h")
+    
+    shutil.copy("USER-MISC/pair_lebedeva_z.cpp", "pair_lebedeva_z.cpp")
+    shutil.copy("USER-MISC/pair_lebedeva_z.h", "pair_lebedeva_z.h")
+    shutil.copy("USER-MISC/pair_drip.cpp", "pair_drip.cpp")
+    shutil.copy("USER-MISC/pair_drip.h", "pair_drip.h")
+
     
     
-
-
-
     # Copy customised reax/c source files to the src directory
     if(use_modified_reaxff):
 
