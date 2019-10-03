@@ -174,8 +174,8 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
             e_vdW = e_vdW / r_ij;
             CEvd = (CEvd / r_ij) - (e_vdW / r_ij);
             //  convert to kcal per mole
-            e_vdW = e_vdW * 23.06;
-            CEvd = CEvd * 23.06;
+            e_vdW = e_vdW * 23.06054194533;
+            CEvd = CEvd * 23.06054194533;
           }
           else if( r_ij < BC_C_) {  // spline
               //printf("spline: \n");
