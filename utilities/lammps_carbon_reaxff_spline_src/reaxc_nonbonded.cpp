@@ -184,7 +184,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
             RLIJ_POW4 = RLIJ_POW2*RLIJ_POW2;
             RLIJ_POW5 = RLIJ_POW4*r_ij;
             e_vdW = exp(FF1CC + FF2CC*r_ij + FF3CC*RLIJ_POW2 + FF4CC*RLIJ_POW3 + FF5CC*RLIJ_POW4 + FF6CC*RLIJ_POW5);
-            CEvd = (FF2CC + 2*FF3CC*r_ij + 3*FF4CC*RLIJ_POW2 + 4*FF5CC*RLIJ_POW3 + 5*FF6CC*RLIJ_POW4) * CEvd;
+            CEvd = (FF2CC + 2*FF3CC*r_ij + 3*FF4CC*RLIJ_POW2 + 4*FF5CC*RLIJ_POW3 + 5*FF6CC*RLIJ_POW4) * e_vdW;
           }
           else {  // vdWaals energy
               //printf("vdw: \n");
