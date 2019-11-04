@@ -503,17 +503,17 @@ if __name__ == '__main__':
 
 
 
-    print("   ")
-    print("> A custom splining function between ReaxFF and ZBL for carbon systems can be added.")
-    print("> This is available using the customised ReaxFF code.")
-    if sys.version_info[0] < 3:
-        user_choice = raw_input('Do you wish to use the custom ReaxFF code? (y/n)?: ')
-    else:
-        user_choice = input('Do you wish to use the custom ReaxFF code? (y/n)?: ')
-    if ((user_choice == 'yes') or (user_choice == 'y') ):
-        use_modified_reaxff = True
+    #print("   ")
+    #print("> A custom splining function between ReaxFF and ZBL for carbon systems can be added.")
+    #print("> This is available using the customised ReaxFF code.")
+    #if sys.version_info[0] < 3:
+    #    user_choice = raw_input('Do you wish to use the custom ReaxFF code? (y/n)?: ')
+    #else:
+    #    user_choice = input('Do you wish to use the custom ReaxFF code? (y/n)?: ')
+    #if ((user_choice == 'yes') or (user_choice == 'y') ):
+    #    use_modified_reaxff = True
     
-    print("   ")
+    #print("   ")
 
     print("   ")
     print("> This script generates a makefile.")
