@@ -11,7 +11,7 @@ This code requires [Python](http://www.python.org) to run. Currently Python 2.7,
 
 Clone the repository to a directory of your choice:
 ~~~
- git clone https://github.com/Kenny-Jolley/LAMMPS_UTILITIES.git
+ git clone git://github.com/Kenny-Jolley/LAMMPS_UTILITIES.git
 ~~~
 Ensure that each directory is added to your path.  
 e.g. if you created a git directory in your home directory, add these lines for a tcsh shell:
