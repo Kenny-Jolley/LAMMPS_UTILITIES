@@ -46,8 +46,12 @@ units           real
 atom_style  charge
 read_data       ${input_file}
 
-pair_style  reax/c NULL
-pair_coeff  * * ffield C
+# pair_style  reax/c NULL
+# pair_coeff  * * ffield C
+
+pair_style hybrid/overlay reax/c NULL  zbl 0.25 0.95
+pair_coeff * * reax/c ffield C
+pair_coeff * * zbl 6.0 6.0
 
 neighbor       2. bin
 neigh_modify   every 10 delay 0 check no
