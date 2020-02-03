@@ -23,6 +23,7 @@ def lammps_setup_custom_compile(**kwargs):
     use_voro = kwargs.get('use_voro', False)
     use_modified_reaxff = kwargs.get('use_modified_reaxff', False)
     use_intel = kwargs.get('use_intel', False)
+    use_intel_package = kwargs.get('use_intel_package', False)
 
     if(verbose):
         print("\n> Running")
@@ -30,6 +31,7 @@ def lammps_setup_custom_compile(**kwargs):
         print(" use_voro =  " + str(use_voro) )
         print(" use_modified_reaxff =  " + str(use_modified_reaxff) )
         print(" use_intel =  " + str(use_intel) )
+        print(" use_intel_package =  " + str(use_intel_package) )
 
     # make sure we are on the stable branch and update.
     print("> Checkout the stable branch and update")
@@ -138,33 +140,35 @@ def lammps_setup_custom_compile(**kwargs):
     # Generate file
     print("> Generating: MAKE/MINE/Makefile.kj_mpi ")
     outfile = open("MAKE/MINE/Makefile.kj_mpi", 'w')
+
     if(use_intel):
-        outfile.write("""# mpi = MPI with its default compiler, mac, jpeg, png, ffmpeg, intel cpus
+        if(use_intel_package):
+            outfile.write("""# mpi = MPI with intel compiler, mac, jpeg, png, ffmpeg, intel cpus
 SHELL = /bin/sh
 
 # ---------------------------------------------------------------------
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =         mpicxx
+CC =         mpiicpc -std=c++11
 # Default
 # OPTFLAGS = -O3
 # CCFLAGS  = $(OPTFLAGS)
 #
 
 # Intel optimised (mac, magrid)
-OPTFLAGS =   -xHost -O3 -fp-model fast=2 -no-prec-div -qoverride-limits -L$(MKLROOT)/lib/ -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
-CCFLAGS  =   -DLAMMPS_MEMALIGN=64 -fno-alias -ansi-alias -restrict -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS)
+# OPTFLAGS =   -xHost -O3 -fp-model fast=2 -no-prec-div -qoverride-limits -L$(MKLROOT)/lib/ -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
+# CCFLAGS  =   -DLAMMPS_MEMALIGN=64 -fno-alias -ansi-alias -restrict -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS)
 
 # Intel optimised (athena)
-# OPTFLAGS =  -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits -L$(MKLROOT)/lib/intel64/ -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
-# CCFLAGS =    -qopenmp -DLAMMPS_MEMALIGN=64 -qno-offload -fno-alias -ansi-alias -restrict -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS)
+OPTFLAGS =  -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits -L$(MKLROOT)/lib/intel64/ -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
+CCFLAGS =    -qopenmp -DLAMMPS_MEMALIGN=64 -qno-offload -fno-alias -ansi-alias -restrict -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS)
 
 
 SHFLAGS =    -fPIC
 DEPFLAGS =   -M
 
-LINK =       mpicxx
+LINK =       mpiicpc -std=c++11
 
 LINKFLAGS =  $(OPTFLAGS)
 
@@ -271,25 +275,149 @@ fastdep.exe: ../DEPEND/fastdep.c
 sinclude .depend
 """)
 
-    else:
-        outfile.write("""# mpi = MPI with its default compiler, mac, jpeg, png, ffmpeg, g++
+        else:    #  intel compiler without USER-INTEL
+            outfile.write("""# mpi = MPI with intel compiler, mac, jpeg, png, ffmpeg, intel cpus
+SHELL = /bin/sh
+# ---------------------------------------------------------------------
+# compiler/linker settings
+# specify flags and libraries needed for your compiler
+
+CC =         mpiicpc -std=c++11
+# Default
+OPTFLAGS = -xHost -O3
+CCFLAGS  = $(OPTFLAGS)
+
+
+SHFLAGS =    -fPIC
+DEPFLAGS =   -M
+
+LINK =       mpiicpc -std=c++11
+
+LINKFLAGS =  $(OPTFLAGS)
+
+
+
+LIB =        -ltbbmalloc
+SIZE =       size
+
+ARCHIVE =    ar
+ARFLAGS =    -rc
+SHLIBFLAGS = -shared
+
+# ---------------------------------------------------------------------
+# LAMMPS-specific settings, all OPTIONAL
+# specify settings for LAMMPS features you will use
+# if you change any -D setting, do full re-compile after "make clean"
+
+# LAMMPS ifdef settings
+# see possible settings in Section 2.2 (step 4) of manual
+
+LMP_INC =    -DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64 -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_FFMPEG
+
+# MPI library
+# see discussion in Section 2.2 (step 5) of manual
+# MPI wrapper compiler/linker can provide this info
+# can point to dummy MPI library in src/STUBS as in Makefile.serial
+# use -D MPICH and OMPI settings in INC to avoid C++ lib conflicts
+# INC = path for mpi.h, MPI compiler settings
+# PATH = path for MPI library
+# LIB = name of MPI library
+
+MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
+MPI_PATH =
+MPI_LIB =
+
+# FFT library
+# see discussion in Section 2.2 (step 6) of manual
+# can be left blank to use provided KISS FFT library
+# INC = -DFFT setting, e.g. -DFFT_FFTW, FFT compiler settings
+# PATH = path for FFT library
+# LIB = name of FFT library
+
+FFT_INC =
+FFT_PATH =
+FFT_LIB =
+
+# JPEG and/or PNG library
+# see discussion in Section 2.2 (step 7) of manual
+# only needed if -DLAMMPS_JPEG or -DLAMMPS_PNG listed with LMP_INC
+# INC = path(s) for jpeglib.h and/or png.h
+# PATH = path(s) for JPEG library and/or PNG library
+# LIB = name(s) of JPEG library and/or PNG library
+
+JPG_INC = -I/opt/local/include
+JPG_PATH = -L/opt/local/lib
+JPG_LIB = -ljpeg -lpng
+
+# ---------------------------------------------------------------------
+# build rules and dependencies
+# do not edit this section
+
+include    Makefile.package.settings
+include    Makefile.package
+
+EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
+EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB)
+EXTRA_CPP_DEPENDS = $(PKG_CPP_DEPENDS)
+EXTRA_LINK_DEPENDS = $(PKG_LINK_DEPENDS)
+
+# Path to src files
+
+vpath %.cpp ..
+vpath %.h ..
+
+# Link target
+
+$(EXE):\t$(OBJ) $(EXTRA_LINK_DEPENDS)
+\t$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
+\t$(SIZE) $(EXE)
+
+# Library targets
+
+lib:\t$(OBJ) $(EXTRA_LINK_DEPENDS)
+\t$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+shlib:\t$(OBJ) $(EXTRA_LINK_DEPENDS)
+\t$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \\
+\t$(OBJ) $(EXTRA_LIB) $(LIB)
+
+# Compilation rules
+
+%.o:%.cpp
+\t$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
+
+# Individual dependencies
+
+depend : fastdep.exe $(SRC)
+\t@./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
+
+fastdep.exe: ../DEPEND/fastdep.c
+\tcc -O -o $@ $<
+
+sinclude .depend
+""")
+
+
+
+    else:  # Default gcc
+
+        outfile.write("""# mpi = MPI with gcc compiler , jpeg, png, ffmpeg, g++
 SHELL = /bin/sh
 
 # ---------------------------------------------------------------------
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =         mpicxx
-# Default, If mpi calls intel compilers, can include -xHost, but be careful with this on hydra
-#          because compute-12 is different to the login nodes.
-#          Use -march=native -mtune=native  for gcc
-OPTFLAGS =  -O3
+CC =         mpicxx  -cxx=g++
+
+OPTFLAGS =  -march=native -mtune=native -O3
 CCFLAGS  = $(OPTFLAGS)
 
 SHFLAGS =    -fPIC
 DEPFLAGS =   -M
 
-LINK =       mpicxx
+LINK =       mpicxx  -cxx=g++
 
 LINKFLAGS =  $(OPTFLAGS)
 
@@ -455,9 +583,10 @@ sinclude .depend
 
 # If we are running this script interactively, call the function safely
 if __name__ == '__main__':
-    use_voro=False
-    use_modified_reaxff=False
-    use_intel= False
+    use_voro = False
+    use_modified_reaxff = False
+    use_intel = False
+    use_intel_package = False
     
     print("  +------------------------------------------+")
     print("  |        Lammps setup compile script       |")
@@ -518,17 +647,29 @@ if __name__ == '__main__':
     print("   ")
     print("> This script generates a makefile.")
     print("> You need to choose between INTEL or GCC compiler options.")
-    print("> Choosing INTEL also includes the USER-INTEL package.")
     if sys.version_info[0] < 3:
-        user_choice = raw_input('Do you wish to use the INTEL compiler options? (y/n)?: ')
+        user_choice = str(raw_input('Do you wish to use the INTEL compilers ? (y/n) : ')).lower().strip()
     else:
-        user_choice = input('Do you wish to use the INTEL compiler options? (y/n)?: ')
+        user_choice = str(input('Do you wish to use the INTEL compilers ? (y/n) : ')).lower().strip()
     if ((user_choice == 'yes') or (user_choice == 'y') ):
         use_intel = True
+
+    # if we are using intel compilers, decide if we want USER-INTEL package
+    if(use_intel):
+        print("   ")
+        print("> You can use the optional USER-INTEL package.")
+        if sys.version_info[0] < 3:
+            user_choice = raw_input('Do you wish to use the USER-INTEL package? (y/n)?: ')
+        else:
+            user_choice = input('Do you wish to use the USER-INTEL package? (y/n)?: ')
+        if ((user_choice == 'yes') or (user_choice == 'y') ):
+            use_intel_package = True
     
     print("   ")
 
-
-
     # call the lammps_setup_custom_compile function
-    lammps_setup_custom_compile(verbose=True, use_voro=use_voro, use_modified_reaxff=use_modified_reaxff, use_intel=use_intel)
+    lammps_setup_custom_compile(verbose=True,
+                                use_voro=use_voro,
+                                use_modified_reaxff=use_modified_reaxff,
+                                use_intel=use_intel,
+                                use_intel_package=use_intel_package)
