@@ -160,7 +160,7 @@ CC =         mpiicpc -std=c++11
 # OPTFLAGS =   -xHost -O3 -fp-model fast=2 -no-prec-div -qoverride-limits -L$(MKLROOT)/lib/ -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 # CCFLAGS  =   -DLAMMPS_MEMALIGN=64 -fno-alias -ansi-alias -restrict -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS)
 
-# Intel optimised (athena)
+# Intel optimised (athena, lovelace)
 OPTFLAGS =  -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits -L$(MKLROOT)/lib/intel64/ -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 CCFLAGS =    -qopenmp -DLAMMPS_MEMALIGN=64 -qno-offload -fno-alias -ansi-alias -restrict -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS)
 
@@ -173,8 +173,11 @@ LINK =       mpiicpc -std=c++11
 LINKFLAGS =  $(OPTFLAGS)
 
 
+# (athena)
+# LIB =        -ltbbmalloc
 
-LIB =        -ltbbmalloc
+# (lovelace)
+LIB =   -ltbbmalloc -lpthread -liomp5
 SIZE =       size
 
 ARCHIVE =    ar
