@@ -107,7 +107,7 @@ def lammps_setup_custom_compile(**kwargs):
     os.system("make yes-USER-SMTBQ")
     os.system("make yes-USER-SPH")
     os.system("make yes-USER-TALLY")
-    if(use_intel):
+    if(use_intel_package):
         os.system("make yes-USER-INTEL")   # This needs intel libraries to work
 
 
