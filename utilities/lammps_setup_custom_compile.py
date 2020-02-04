@@ -405,14 +405,15 @@ sinclude .depend
 
     else:  # Default gcc
 
-        outfile.write("""# mpi = MPI with gcc compiler , jpeg, png, ffmpeg, g++
+        outfile.write("""# g++_openmpi = OpenMPI with compiler set to GNU g++
 SHELL = /bin/sh
 
 # ---------------------------------------------------------------------
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =         mpicxx  -cxx=g++
+export OMPI_CXX = g++
+CC =         mpicxx
 
 OPTFLAGS =  -march=native -mtune=native -O3
 CCFLAGS  = $(OPTFLAGS)
@@ -420,7 +421,7 @@ CCFLAGS  = $(OPTFLAGS)
 SHFLAGS =    -fPIC
 DEPFLAGS =   -M
 
-LINK =       mpicxx  -cxx=g++
+LINK =       mpicxx
 
 LINKFLAGS =  $(OPTFLAGS)
 
