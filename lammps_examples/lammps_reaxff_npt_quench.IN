@@ -1,12 +1,13 @@
 # 
 #          NPT quench simulation using the ReaxFF potential
 #
-#                     Kenny Jolley  April 2019
+#                     Kenny Jolley  March 2020
 
-# 3 Simulation blocks:
-#   - Initial NPT thermalisation of the system at high temperature 
-#   - Quench of the system at the user given quench rate
-#   - Relaxation of the system to zero K using a minimisation algorithm
+# 4 Simulation Phases:
+#   - Phase 1: Initial NPT thermalisation, hold at high_temp for init_eq_time.  
+#   - Phase 2: Quench from high_temp to final_temp at given quenchrate
+#   - Phase 3: Hold at final_temp for final_eq_time
+#   - Phase 4: Relaxation of the system to zero K using a minimisation algorithm
 
 # Requires:
 #  ffield
@@ -18,21 +19,28 @@
 
 variable input_file   string  'lammps.lattice.dat'    #  Input filename of the lattice
 
-variable high_temp    equal   6000       #  Initial System temperature [K] 
-variable init_eq_time equal    100.0     #  Initial Equilibration time [ps]
+# Phase 1, hold at High_temp for init_eq_time.
+variable high_temp     equal     300       #  Initial System temperature [K] 
+variable init_eq_time  equal       10.0     #  Initial Equilibration time [ps]
 
-variable quenchrate   equal   1e13       #  System quench rate [K/s] 
+# Phase 2, quench from high_temp to final_temp at given quenchrate
+variable quenchrate    equal    1e13       #  System quench rate [K/s] 
+variable final_temp    equal    100        #  Final System temperature [K] 
 
-variable final_temp   equal   10         #  Final System temperature [K] 
+# Phase 3, Hold at final_temp for final_eq_time
+variable final_eq_time equal       0.5     #  Final Equilibration time [ps]
+
+# Phase 4, Relax final structure to zero Kelvin by minimisation
+variable do_minimise   equal    false       # Do you wish to minimise the final structure to zero K (True/False)
+
+variable min_method    string  'cg'        #  The minimisation method, chose from: cg, htfn, sd, quickmin, fire
+variable relax_box     equal    true       #  Allow box dimensions to change during relaxation?  (True/False)
+variable force_tol     equal    1.0e-10    #  Minimiser stopping tolerance for force (force units)
+variable max_iters     equal    9999999    #  Maximum no. steps of the minimiser before quitting
 
 
-variable min_method   string  'cg'       #  The minimisation method, chose from: cg, htfn, sd, quickmin, fire
-variable relax_box    equal    true      #  Allow box dimensions to change during relaxation?  (True/False)
-variable force_tol    equal    1.0e-10   #  Minimiser stopping tolerance for force (force units)
-variable max_iters    equal    9999999   #  Maximum no. steps of the minimiser before quitting
-
-variable output_freq  equal    0.1       #  Output period of data in log files [ps]
-variable dump_freq    equal    1.0       #  Output frequency of dump files containing atom coordinates [ps]
+variable output_freq   equal    0.1        #  Output period of data in log files [ps]
+variable dump_freq     equal    1.0        #  Output frequency of dump files containing atom coordinates [ps]
 
 
 # Should NOT need to change these variables
@@ -68,11 +76,11 @@ fix            99 all qeq/reax 1 0.0 10.0 1e-6 reax/c
 
 
 #
-# Initial NPT equilibration
+# Phase 1: Initial NPT equilibration
 #
 print " "
 print "-----------------------------------"
-print "  Begin Initial NPT equilibration"
+print "  Phase 1: Begin Initial NPT equilibration"
 print "-----------------------------------"
 print " "
 
@@ -125,11 +133,11 @@ print " "
 
 
 #
-# Quench system in NPT
+# Phase 2: Quench system in NPT
 #
 print " "
 print "-----------------------------------------------"
-print "  Quenching system"
+print "  Phase 2: Quenching system"
 print "-----------------------------------------------"
 print " "
 
@@ -165,14 +173,54 @@ print " >>>  Quench to ${final_temp} K complete.  <<<"
 print " "
 
 
+
 #
-# Minimise final state to zero K
+# Phase 3: final NPT equilibration
 #
 print " "
 print "-----------------------------------------------"
-print "  Minimise the final state to ZERO K"
+print "  Phase 3: final NPT equilibration"
 print "-----------------------------------------------"
 print " "
+
+
+print "Thermalising at ${final_temp} K"
+print "Thermalisation time ${final_eq_time} ps"
+
+# Delete existing NPT fix
+unfix 1
+
+# NPT fix
+fix      1  all npt temp ${final_temp} ${final_temp} 50.0 aniso 0.0 0.0 500.0
+
+# Calc final time steps
+variable num_timesteps equal  ${final_eq_time}/${sim_timestep}
+
+print "Equilibration timesteps required = ${num_timesteps} "
+print " "
+
+# run equilibration simulation for defined no. of timesteps.
+run		${num_timesteps}
+
+print " "
+print " >>>  Final thermalisation at ${final_temp} K complete.  <<<"
+print " "
+
+
+
+#
+# Phase 4: Minimise final state to zero K
+#
+print " "
+print "-----------------------------------------------"
+print "  Phase 4: Minimise the final state to ZERO K"
+print "-----------------------------------------------"
+print " "
+
+if "!${do_minimise}" then & 
+ 'print "Not minimising the final state to zero K"  ' 
+
+
 
 # Delete existing NPT fix
 unfix 1
@@ -188,7 +236,8 @@ if "${relax_box}" then &
  "fix 2 all box/relax aniso 0.0 vmax 0.001"
 
 # Output data format of the log file
-thermo_style    custom time step ke pe etotal temp press lx ly lz vol density fmax fnorm
+if "${do_minimise}" then &
+ "thermo_style    custom time step ke pe etotal temp press lx ly lz vol density fmax fnorm"
 
 min_style ${min_method}
 
@@ -199,9 +248,11 @@ min_style ${min_method}
 #    ftol = stopping tolerance for force (force units)
 #    maxiter = max iterations of minimizer
 #    maxeval = max number of force/energy evaluations
+if "${do_minimise}" then &
+ "minimize 0.0 ${force_tol} ${max_iters} 10000000000"
 
-minimize 0.0 ${force_tol} ${max_iters} 10000000000
 
-
-
+print " "
+print " >>>  Job complete.  <<<"
+print " "
 
