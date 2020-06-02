@@ -1,0 +1,169 @@
+# 
+#          Restart a Simple NPT simulation using the ReaxFF potential
+#
+#                     Kenny Jolley  June 2020
+
+# 2 Simulation blocks:
+#   - Initial relaxation of the system (to move past transients)
+#   - Equilibrate in NPT and output running average quantities
+
+# Requires:
+#  ffield
+#  The restart file with the name defined below
+
+# -----------------------------------
+#  Configurable variables
+# -----------------------------------
+
+variable input_file   string  'restart.8800.npt'    #  Filename of the restart file
+
+#---- Variables must be the same as those used in the original simulation ------
+variable av_temp      equal   300        #  System temperature [K] 
+variable av_pressure  equal    0.0       #  Average external pressure [Atm]
+variable init_eq_time equal    1.0       #  Initial Equilibration time [ps]
+
+variable output_freq  equal    0.1       #  Output period of data in log files [ps]
+variable output_av    equal    0.1       #  Running_average output time period [ps]
+
+variable dump_freq    equal    0.5       #  Output frequency of dump files containing atom coordinates [ps]
+
+variable runtime      equal   4.0        #  Simulation runtime [ps] after the Equilibration phase
+
+variable do_archival_restarts  equal true      #  Do you wish to output archival restart files every fixed no. of timesteps?
+variable archival_restarts     equal   0.1     #  Archival restart interval [ps] 
+
+variable do_restarts    equal   false          #  Do you wish to save a restart file regularily?
+variable restart_freq   equal   0.1            #  Regular restart interval [ps] 
+
+
+# Should NOT need to change these variables
+
+variable sim_timestep equal     0.0005  #  Timestep to use in the MD simulations [ps]
+variable random_seed  equal      52253  #  Seed of the random number generator
+
+# -----------------------------------
+#  Simulation commands
+# -----------------------------------
+
+print " "
+print "-----------------------------------"
+print "  Read restart file:  ${input_file}  "
+print "-----------------------------------"
+print " "
+
+read_restart   ${input_file} 
+
+
+print " "
+variable curr_timestep equal dt
+print "> Current Timestep:  ${curr_timestep} fs"
+variable curr_time equal $(step*dt/1000) 
+print "> Current simulation time: ${curr_time} ps"
+
+
+# ReaxFF potential and fixes
+pair_style hybrid/overlay reax/c NULL  zbl 1.0 1.15
+pair_coeff * * reax/c ffield C
+pair_coeff * * zbl 6.0 6.0
+neighbor       2. bin
+neigh_modify   every 10 delay 0 check no
+fix            99 all qeq/reax 1 0.0 10.0 1e-6 reax/c
+
+# NPT fix
+fix      1  all npt temp ${av_temp} ${av_temp} 50.0 aniso ${av_pressure} ${av_pressure} 500.0
+
+# Archival restarts?
+variable steps_archival_restarts equal (v_archival_restarts/${sim_timestep})
+if "${do_archival_restarts}" then &
+ "restart ${steps_archival_restarts} restart.*.npt"
+
+
+# Frequent restarts?
+variable steps_restart_freq equal (v_restart_freq/${sim_timestep})
+if "${do_restarts}" then &
+ "restart ${steps_restart_freq} restart.latest0.npt restart.latest1.npt"
+
+
+# Thermo settings
+
+# Output data format of the log file
+thermo_style    custom step etotal temp press lx ly lz vol density
+# Output frequency of the log file
+variable thermo_freq equal ${output_freq}/${sim_timestep}
+thermo          ${thermo_freq}
+thermo_modify lost ignore flush yes
+
+# Define a variable v_simtime, and set equal to simulation time for each atom
+variable simtime atom  (step*dt/1000)
+# Define computes for the ke and pe of each atom
+compute ke all ke/atom
+compute pe all pe/atom
+
+# Write lattice to output file, custom column format.
+variable dump_freqsteps equal (v_dump_freq/${sim_timestep})
+dump            6 all custom ${dump_freqsteps} dump*.dat.gz id element x y z v_simtime c_ke c_pe
+# use LBOMD convention for atom names
+#dump_modify     6 element C_
+
+
+# decide if we need to continue initial equilibration or continue npt and data output. 
+
+variable init_eq_remaining equal $(v_init_eq_time-v_curr_time)
+print "> Remaining initial equilibration time: ${init_eq_remaining} ps"
+
+
+if "${init_eq_remaining} < 0.0" then &
+    'print "> Jumping to running NPT and data output"' & 
+	"jump SELF run_npt"
+
+
+variable num_timesteps equal  ${init_eq_remaining}/${sim_timestep}
+
+print "> Equilibration timesteps required = ${num_timesteps} "
+
+print " "
+print "-----------------------------------"
+print "  Resuming Initial NPT equilibration"
+print "-----------------------------------"
+print " "
+
+print "Thermalising at ${av_temp} K"
+print "Thermalisation time remaining ${init_eq_remaining} ps"
+
+
+# run equilibration simulation for defined no. of timesteps.
+run		${num_timesteps}
+
+print " "
+print " Initial NPT equilibration complete. "
+print " "
+
+
+label run_npt
+#
+# Equilibrate in NPT
+#
+print " "
+print "-----------------------------------------------"
+print "  Equilibrate in NPT - Outputting running averages to file"
+print "-----------------------------------------------"
+print " "
+
+variable curr_time equal $(step*dt/1000) 
+print "> Current simulation time: ${curr_time} ps"
+
+variable runtime_remaining equal $(v_runtime+v_init_eq_time-v_curr_time)
+print "> Remaining NPT runtime: ${runtime_remaining} ps"
+
+# Measure average box lengths
+variable Length_x equal lx
+variable Length_y equal ly
+variable Length_z equal lz
+variable Temperature equal temp
+variable avsteps equal (v_output_av/${sim_timestep})
+fix 2 all ave/time 1 ${avsteps} ${avsteps} v_Length_x v_Length_y v_Length_z v_Temperature ave running file Running_average.txt format %20.16g title1 "Running average data for fix 2"
+
+# run equilibration simulation for defined no. of timesteps.
+variable avsteps equal (v_runtime_remaining/${sim_timestep})
+run     ${avsteps}
+
