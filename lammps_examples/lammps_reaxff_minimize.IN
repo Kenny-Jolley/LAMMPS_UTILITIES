@@ -1,7 +1,7 @@
 # 
 #          Minimise using the ReaxFF potential
 #
-#                Kenny Jolley  April 2019
+#                Kenny Jolley  July 2020
 
 # Just reads in a lattice data file and minimises using the chosen method.
 
@@ -19,11 +19,12 @@ variable min_method   string  'cg'         #  The minimisation method, chose fro
 variable relax_box    equal    true        #  Allow box dimensions to change during relaxation?  (True/False)
 variable force_tol    equal    1.0e-10     #  Minimiser stopping tolerance for force (force units)
 variable max_iters    equal    9999999     #  Maximum no. steps of the minimiser before quitting
+variable atomjiggle   equal    0.01        #  Define the amount of random jiggle for atoms [Ang] # This prevents atoms from staying on saddle points
+variable restrict_2D  equal    false       #  Forces in Z are fixed to zero, atoms don't get initial displacements in Z. (True/False)
+
 
 variable output_freq  equal    0.05        #  Output period of data in log files [ps]
 variable dump_freq    equal    0.05        #  Output frequency of dump files containing atom coordinates [ps]
-
-variable atomjiggle   equal    0.01        # Define the amount of random jiggle for atoms [Ang] # This prevents atoms from staying on saddle points
 
 # Should NOT need to change these variables
 variable sim_timestep equal     0.0005  #  Timestep to use in the MD simulations [ps]
@@ -72,9 +73,15 @@ timestep ${reaxff_sim_timestep}
 if "${relax_box}" then &
  "fix 2 all box/relax aniso 0.0 vmax 0.001"
 
+# Fix in Z?
+if "${restrict_2D}" then &
+ "fix 5 all setforce NULL NULL 0.0"
 
 # Apply the amount of random jiggle for atoms
-displace_atoms all random ${atomjiggle} ${atomjiggle} ${atomjiggle} ${random_seed} units box
+if "${restrict_2D}" then &
+ "displace_atoms all random ${atomjiggle} ${atomjiggle} 0.0 ${random_seed} units box"  &
+else &
+  "displace_atoms all random ${atomjiggle} ${atomjiggle} ${atomjiggle} ${random_seed} units box" 
 
 
 # Output data format of the log file
