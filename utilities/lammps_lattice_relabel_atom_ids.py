@@ -15,6 +15,8 @@
 import sys
 import os
 import datetime
+import numpy as np
+
 
 # function reads a lammps lattice input file and relabels the atom IDs
 def lammps_lattice_relabel_atom_ids(**kwargs):
@@ -25,7 +27,7 @@ def lammps_lattice_relabel_atom_ids(**kwargs):
     overwrite = kwargs.get('overwrite', False)
 
     # Welcome
-    if(verbose):
+    if verbose:
         print("  +------------------------------------------+")
         print("  | This script reads a lammps lattice input |")
         print("  |      file and relabels the atom IDs      |")
@@ -38,104 +40,89 @@ def lammps_lattice_relabel_atom_ids(**kwargs):
 
         print(">  Lammps input filename: " + str(filename))
 
-
     # output filename
     x = datetime.datetime.now()
     output_filename = (x.strftime("%Y") + x.strftime("%m") +
                        x.strftime("%d") + x.strftime("%H") +
-                       x.strftime("%M") + x.strftime("%S") + "_lammps.lattice.dat" )
+                       x.strftime("%M") + x.strftime("%S") + "_lammps.lattice.dat")
 
     # Open input file
     infile = open(filename, 'r')
-    if(verbose):
-        print("Opened file: " + str(infile.name) )
+    row_count = 0
+    if verbose:
+        print("Opened file: " + str(infile.name))
 
     # Create output file
     outfile = open(output_filename, 'w+')
-    if(verbose):
-        print("Opened file: " + str(outfile.name) )
-
+    if verbose:
+        print("Opened file: " + str(outfile.name))
 
     # Read and write the header, stop after reading the 'Atoms' line
-    while 1:
+    atoms = 0
+    while True:
         fileline = infile.readline()
-        filelinesplit = fileline.split()
+        outfile.write(str(fileline))
+        row_count = row_count + 1
+        fileline_split = fileline.split()
         
         # Save the number of atoms
-        if len(filelinesplit)>1:
-            if (filelinesplit[1]=='atoms'):
-                atoms = int(filelinesplit[0])
+        if len(fileline_split) > 1:
+            if fileline_split[1] == 'atoms':
+                atoms = int(fileline_split[0])
 
         # Stopping criteria
-        if len(filelinesplit)>0:
-            if (filelinesplit[0]=='Atoms'):
-                # print the "Atoms" line
-                outfile.write(str(fileline))
-                # and write the next blank line
+        if len(fileline_split) > 0:
+            if fileline_split[0] == 'Atoms':
+                # Write the next blank line and exit
                 fileline = infile.readline()
+                row_count = row_count + 1
                 outfile.write(str(fileline))
                 break
-
-
-
-
-        outfile.write(str(fileline))
-
-
-    # Now we need to read the atom data lines, and modify the first column
-    # with a sequential counter
-    counter = 1
-    while 1:
-        fileline = infile.readline()
-        if not fileline: break
-        
-        fileline = fileline.split()
-        
-        if len(filelinesplit)==0:
-            break
-        
-        outfile.write( str(counter) + "  ")
-        for x in range(1,len(fileline)):
-            outfile.write( str(fileline[x]) + "  ")
-            
-        outfile.write("\n")
-
-        counter = counter + 1
-      
     infile.close()
-    outfile.close()
 
+    # Now we need to read in all the data lines to a numpy array
+    data = np.loadtxt(filename, skiprows=row_count)
+    # print(data)
 
     # Test if no. atoms are as expected
-    if(verbose):
-        print("\nAtoms expected in file: " + str(atoms) )
-        print("Atoms actually read   : " + str(counter-1) )
-    if (atoms != (counter-1)):
-        print(">>> WARNING: There is a mismatch between the number of atoms field at the top of the file, with the actual number of atom records in the file")
-        print("\nAtoms expected in file: " + str(atoms) )
-        print("Atoms actually read   : " + str(counter-1) )
-      
+    if verbose:
+        print("\nAtoms expected in file: " + str(atoms))
+        print("Atoms actually read   : " + str(data.shape[0]))
+    if atoms != data.shape[0]:
+        print(">>> WARNING: atoms field at the top of the file does NOT match "
+              "with the actual number of atom records in the file")
+        print("\nAtoms expected in file: " + str(atoms))
+        print("Atoms actually read   : " + str(data.shape[0]))
+
+    # Sort atom data into order by first column
+    data = data[data[:, 0].argsort()]
+    # print(data)
+
+    # Print sorted data to file, relabel ids starting at 1
+    for i in range(data.shape[0]):
+        outfile.write(str(i+1) + " ")
+        for j in range(data.shape[1]-1):
+            d = data[i][j+1]
+            if int(d) == d:
+                outfile.write(str(int(d)) + " ")
+            else:
+                outfile.write(str(d) + " ")
+        outfile.write("\n")
+    outfile.close()
 
     # overwrite existing file if required
-    if(overwrite):
+    if overwrite:
         os.remove(filename)
-        os.rename(output_filename,filename)
+        os.rename(output_filename, filename)
 
 
 # If we are running this script interactively, call the function safely
 if __name__ == '__main__':
-    
-    verbose=True
-    overwrite=False
 
     # Get the filename from commandline, if present
-    if( len(sys.argv) > 1 ):
-        filename = str(sys.argv[1])
-
+    if len(sys.argv) > 1:
         # call the function safely
-        lammps_lattice_relabel_atom_ids(verbose=verbose, overwrite=overwrite, filename=filename)
-
+        lammps_lattice_relabel_atom_ids(verbose=True, overwrite=False, filename=str(sys.argv[1]))
     else:
         # call the function safely (use default filename)
-        lammps_lattice_relabel_atom_ids(verbose=verbose, overwrite=overwrite)
-
+        lammps_lattice_relabel_atom_ids(verbose=True, overwrite=False)
