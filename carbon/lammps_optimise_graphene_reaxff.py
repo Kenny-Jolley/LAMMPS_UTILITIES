@@ -24,7 +24,7 @@ except ImportError:
 
 
 # function that we want to minimise
-def objective_funtion(params):
+def objective_function(params):
     # get lattice parameters
     a_const = params[0]
 
@@ -83,7 +83,7 @@ def objective_funtion(params):
 initialGuess = np.array([2.43])
 
 # optimise
-res = minimize(objective_funtion,
+res = minimize(objective_function,
                initialGuess,
                method='nelder-mead',
                options={'xtol': 1e-6, 'disp': True}
