@@ -24,7 +24,7 @@ def lammps_gen_graphene_reaxff(**kwargs):
     verbose = kwargs.get('verbose', False)
     forced = kwargs.get('forced', False)
     # Default constants for the ReaxFF May Potl
-    a_const = kwargs.get('a_const', 2.4334)
+    a_const = kwargs.get('a_const', 2.43479986)
     z_height = kwargs.get('z_height', 20.0)
     filename = kwargs.get('filename', 'lammps.lattice.dat')
     cells = kwargs.get('cells', [1, 1])
