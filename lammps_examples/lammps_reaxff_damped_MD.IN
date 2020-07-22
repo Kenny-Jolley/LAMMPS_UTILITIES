@@ -17,14 +17,15 @@
 
 variable input_file   string  'lammps.lattice.dat'    #  Input filename of the lattice
 
-variable high_temp    equal   50       #  Initial System temperature [K] 
-variable init_eq_time equal    0.0     #  Initial Equilibration time [ps]
+variable high_temp    equal   100       #  Initial System temperature [K] 
+variable init_eq_time equal    1.0      #  Initial Equilibration time [ps]
 
-variable damped_md_time equal   10.0  #  Time to damp system with damped MD [ps]
+variable damped_md_time equal   10.0   #  Time to damp system with damped MD [ps]
 
 variable output_freq  equal    0.1       #  Output period of data in log files [ps]
 variable dump_freq    equal    1.0       #  Output frequency of dump files containing atom coordinates [ps]
 
+variable restrict_2D  equal    false       #  Forces in Z are fixed to zero, atoms don't get initial displacements in Z. (True/False)
 
 # Should NOT need to change these variables
 
@@ -106,7 +107,8 @@ thermo_modify lost ignore flush yes
 
 variable doubleT  equal  ${high_temp}*2
 velocity all create ${doubleT} ${random_seed} dist gaussian
-
+if "${restrict_2D}" then &
+ "velocity all set NULL NULL 0.0"
 
 # Define a variable v_simtime, and set equal to simulation time for each atom
 variable simtime atom time
@@ -121,6 +123,9 @@ dump            6 all custom ${dump_freqsteps} dump*.dat.gz id element x y z v_s
 # use LBOMD convention for atom names
 #dump_modify     6 element C_
 
+# ensure forces are zero in z if req'd
+if "${restrict_2D}" then &
+ "fix 5 all setforce NULL NULL 0.0"
 
 # run equilibration simulation for defined no. of timesteps.
 run		${num_timesteps}
