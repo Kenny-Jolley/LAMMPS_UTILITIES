@@ -27,7 +27,7 @@ variable do_init_min     equal    true       #  Do an initial minimise of the in
 variable min_method      string   'cg'       #  The minimisation method, chose from: cg, htfn, sd, quickmin, fire
 
 # neb params
-variable neb_timestep    equal    5.0        #  Timestep to use in NEB calc
+variable neb_timestep    equal    1.0        #  Timestep to use in NEB calc
 variable output_freq     equal    1000       #  Output period of data in log files [steps]
 variable dump_freq       equal    10000      #  Output frequency of dump files containing atom coordinates [steps]
 variable neb_min_method  string   'fire'     #  The minimisation method, chose from: quickmin, fire
