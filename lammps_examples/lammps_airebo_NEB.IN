@@ -1,0 +1,102 @@
+# 
+#          Find the minimum energy pathway between two states 
+#              using the nudged elastic band (NEB) method
+#                           AIREBO potential
+#                        Kenny Jolley  August 2020
+
+# 3 Simulation blocks:
+#   - Initial minimisation of the first state
+#   - Standard NEB calculation to distribute points along a path
+#   - Climbing Image NEB calculation to find the saddle point 
+
+# Requires:
+#  CH.airebo
+#  initial state lattice file with the mass defined 
+#  final state lattice in simple xyz format 
+
+# -----------------------------------
+#  Configurable variables
+# -----------------------------------
+
+# lattices
+variable initial_structure   string  'initial_opt_neb.dat'    #  LAMMPS data file of the initial lattice structure
+variable final_structure     string  'final_opt_neb.dat'      #  xyz file of the final lattice structure
+
+# initial minimise
+variable do_init_min     equal    true       #  Do an initial minimise of the input structure?  (True/False)
+variable min_method      string   'cg'       #  The minimisation method, chose from: cg, htfn, sd, quickmin, fire
+
+# neb params
+variable neb_timestep    equal    1.0        #  Timestep to use in NEB calc
+variable output_freq     equal    1000       #  Output period of data in log files [steps]
+variable dump_freq       equal    10000      #  Output frequency of dump files containing atom coordinates [steps]
+variable neb_min_method  string   'fire'     #  The minimisation method, chose from: quickmin, fire
+variable std_neb_steps   equal    10000      #  NEB steps to do to get estimate of the barrier
+variable ci_neb_steps    equal    100000     #  CI-NEB steps to do 
+
+
+# Should NOT need to change these variables
+variable max_image      equal     50
+
+
+# -----------------------------------
+#  Simulation commands
+# -----------------------------------
+
+#
+# AIREBO potential settings
+#
+
+dimension       3
+boundary        p p p 
+units           metal
+
+atom_style      atomic
+
+neighbor	    2. bin
+neigh_modify	every 10 delay 0 check no
+atom_modify     map array sort 0 0.0
+
+read_data       ${initial_structure}
+
+pair_style	airebo  3.0
+pair_coeff	* * CH.airebo C
+
+
+variable    u uloop ${max_image}
+
+
+# initial minimisation to relax initial lattice
+min_style   ${min_method}
+if "${do_init_min}" then &
+ "minimize    1.0e-6 1.0e-4 1000 10000"
+reset_timestep  0
+
+
+# set all atoms as NEB atoms
+fix 1 all neb 1.0 
+
+# set timestep (usually can use upto 10x dynamics value)
+timestep ${neb_timestep}
+
+# Output frequency of the log file
+thermo          ${output_freq}
+thermo_modify lost ignore flush yes
+
+
+# Define computes for the ke and pe of each atom
+compute ke all ke/atom
+compute pe all pe/atom
+# Write lattice to output file, custom column format.
+dump            6 all custom ${dump_freq} dump.neb.*.$u.dat id element x y z c_ke c_pe
+# use LBOMD convention for atom names
+dump_modify     6 element C_
+
+
+# run NEB to force tolerance or max steps defined above
+min_style   ${neb_min_method}
+# neb   etol ftol  N1                N2               Nevery          file-style                arg keyword
+neb     0.0  1e-6  ${std_neb_steps}  ${ci_neb_steps}  ${output_freq}  final  ${final_structure}
+
+
+
