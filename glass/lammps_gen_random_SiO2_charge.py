@@ -109,13 +109,13 @@ def lammps_gen_random_SiO2_charge(**kwargs):
                str(2*num_SiO2) + " O atoms (charge = " + str(o_charge) + "), at a density of " +
                str(density) + " kg/m^3\n")
     file.write(str(total_atoms) + " atoms\n\n")
-    file.write("2 atom types # Si O\n\n")
+    file.write("2 atom types # O Si \n\n")
     file.write("0.0 " + str(cube_size_ang) + " xlo xhi\n")
     file.write("0.0 " + str(cube_size_ang) + " ylo yhi\n")
     file.write("0.0 " + str(cube_size_ang) + " zlo zhi\n\n")
     file.write("Masses\n\n")
-    file.write("1 " + str(si_mass) + "\n")
-    file.write("2 " + str(o_mass) + "\n\n")
+    file.write("1 " + str(o_mass) + "\n")
+    file.write("2 " + str(si_mass) + "\n\n")
     file.write("Atoms # charge\n\n")
 
     # Create atom arrays
@@ -220,17 +220,16 @@ if __name__ == '__main__':
         # 4 params = number of SiO2 formula units, Si charge, O charge and density
         if len(sys.argv) == 5:
             _num_SiO2 = int(sys.argv[1])
-            _si_charge = float(sys.argv[2])
-            _o_charge = float(sys.argv[3])
+            _o_charge = float(sys.argv[2])
+            _si_charge = float(sys.argv[3])
             _density = float(sys.argv[4])
 
         else:
             print(">>> ERROR  <<<")
             print("  User must pass 4 command-line arguments")
-            print("   4 params = number of SiO2 formula units (integer), Si charge, O charge and density  (float) ")
+            print("   4 params = number of SiO2 formula units (integer), O charge, Si charge and density  (float) ")
             print("    examples")
-            print("   lammps_gen_random_SiO2_charge.py 1000 4 -2 2100")
-            print("   lammps_gen_random_SiO2_charge.py 2000 4 -2 2500")
+            print("   lammps_gen_random_SiO2_charge.py 1000 -2 4 2100")
             sys.exit()
     else:
         # Otherwise, ask user for the number of atoms and density
