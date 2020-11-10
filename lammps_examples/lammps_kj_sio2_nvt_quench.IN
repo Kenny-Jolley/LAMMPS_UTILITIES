@@ -63,19 +63,20 @@ atom_style      charge
 read_data       ${input_file}
 
 
-pair_style hybrid/overlay buck/coul/cut 10.0  zbl 1.0 1.15 
+pair_style hybrid/overlay buck/coul/long 10.0  zbl 1.0 1.15 
 # pair_style buck/coul/cut 10.0
 # O O 
-pair_coeff 1 1 buck/coul/cut 9027.0 0.265 85.0321 10.0
+pair_coeff 1 1 buck/coul/long 9027.0 0.265 85.0321 10.0
 # Si O
-pair_coeff 1 2 buck/coul/cut 45296.72 0.161 46.1395 10.0
+pair_coeff 1 2 buck/coul/long 45296.72 0.161 46.1395 10.0
 # Si Si 
-pair_coeff 2 2 buck/coul/cut 834.0 0.41 0.0 10.0
+pair_coeff 2 2 buck/coul/long 834.0 0.41 0.0 10.0
 # ZBL
 pair_coeff 1 1 zbl 8.0 8.0
 pair_coeff 1 2 zbl 8.0 14.0
 pair_coeff 2 2 zbl 14.0 14.0
 
+kspace_style ewald 1.0e-4
 
 neighbor	2. bin
 neigh_modify	every 10 delay 0 check no
