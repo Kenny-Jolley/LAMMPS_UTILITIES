@@ -1,0 +1,264 @@
+# 
+#          NVT quench simulation using the KJ SiO2 potential, Nuclear Instruments and Methods in Physics Research B 393 (2017) 73–76
+#
+#                     Kenny Jolley  Nov 2020
+
+# 4 Simulation Phases:
+#   - Phase 1: Initial NVT thermalisation, hold at high_temp for init_eq_time.  
+#   - Phase 2: Quench from high_temp to final_temp at given quenchrate
+#   - Phase 3: Hold at final_temp for final_eq_time
+#   - Phase 4: Relaxation of the system to zero K using a minimisation algorithm
+
+# Requires:
+#  lattice file with the mass defined
+
+# -----------------------------------
+#  Configurable variables
+# -----------------------------------
+
+variable input_file   string  'lammps.lattice.dat'    #  Input filename of the lattice
+
+# Phase 1, hold at High_temp for init_eq_time.
+variable high_temp     equal     1000       #  Initial System temperature [K] 
+variable init_eq_time  equal       5       #  Initial Equilibration time [ps]
+
+# Phase 2, quench from high_temp to final_temp at given quenchrate
+variable quenchrate    equal    1e13       #  System quench rate [K/s] 
+variable final_temp    equal    100        #  Final System temperature [K] 
+
+# Phase 3, Hold at final_temp for final_eq_time
+variable final_eq_time equal       6       #  Final Equilibration time [ps]
+
+# Phase 4, Relax final structure to zero Kelvin by minimisation
+variable do_minimise   equal    false       # Do you wish to minimise the final structure to zero K (True/False)
+
+variable min_method    string  'cg'        #  The minimisation method, chose from: cg, htfn, sd, quickmin, fire
+variable relax_box     equal    false      #  Allow box dimensions to change during relaxation?  (True/False)
+variable force_tol     equal    1.0e-10    #  Minimiser stopping tolerance for force (force units)
+variable max_iters     equal    9999999    #  Maximum no. steps of the minimiser before quitting
+
+
+variable output_freq   equal    0.5        #  Output period of data in log files [ps]
+variable dump_freq     equal    1.0        #  Output frequency of dump files containing atom coordinates [ps]
+
+
+# Should NOT need to change these variables
+
+variable sim_timestep equal     0.0005  #  Timestep to use in the MD simulations [ps]
+variable random_seed  equal      52453  #  Seed of the random number generator
+
+# -----------------------------------
+#  Simulation commands
+# -----------------------------------
+
+#
+# KJ SiO2 potential settings
+#
+
+dimension       3
+boundary        p p p 
+units           metal
+
+atom_style      charge
+read_data       ${input_file}
+
+
+pair_style hybrid/overlay buck/coul/cut 10.0  zbl 1.0 1.15 
+# pair_style buck/coul/cut 10.0
+# O O 
+pair_coeff 1 1 buck/coul/cut 9027.0 0.265 85.0321 10.0
+# Si O
+pair_coeff 1 2 buck/coul/cut 45296.72 0.161 46.1395 10.0
+# Si Si 
+pair_coeff 2 2 buck/coul/cut 834.0 0.41 0.0 10.0
+# ZBL
+pair_coeff 1 1 zbl 8.0 8.0
+pair_coeff 1 2 zbl 8.0 14.0
+pair_coeff 2 2 zbl 14.0 14.0
+
+
+neighbor	2. bin
+neigh_modify	every 10 delay 0 check no
+
+
+#
+# Phase 1: Initial NVT equilibration
+#
+print " "
+print "-----------------------------------"
+print "  Phase 1: Begin Initial NVT equilibration"
+print "-----------------------------------"
+print " "
+
+print "Thermalising at ${high_temp} K"
+print "Thermalisation time ${init_eq_time} ps"
+
+# NVT fix
+fix      1  all nvt temp ${high_temp} ${high_temp} 0.05
+
+# Set timestep
+timestep ${sim_timestep}
+
+variable num_timesteps equal  ${init_eq_time}/${sim_timestep}
+
+print "Equilibration timesteps required = ${num_timesteps} "
+print " "
+
+# Output data format of the log file
+thermo_style    custom step time etotal temp press lx ly lz vol density
+# Output frequency of the log file
+variable thermo_freq equal ${output_freq}/${sim_timestep}
+thermo          ${thermo_freq}
+thermo_modify lost ignore flush yes
+
+variable doubleT  equal  ${high_temp}*2
+velocity all create ${doubleT} ${random_seed} dist gaussian
+
+
+# Define a variable v_simtime, and set equal to simulation time for each atom
+variable simtime atom time
+# Define computes for the ke and pe of each atom
+compute ke all ke/atom
+compute pe all pe/atom
+
+
+# Write lattice to output file, custom column format.
+variable dump_freqsteps equal (v_dump_freq/${sim_timestep})
+dump            6 all custom ${dump_freqsteps} dump*.dat.gz id element x y z v_simtime c_ke c_pe
+# use LBOMD convention for atom names
+dump_modify     6 element O Si
+
+
+# run equilibration simulation for defined no. of timesteps.
+run		${num_timesteps}
+
+print " "
+print " >>>  Initial thermalisation at ${high_temp} K complete.  <<<"
+print " "
+
+
+#
+# Phase 2: Quench system in NVT
+#
+print " "
+print "-----------------------------------------------"
+print "  Phase 2: Quenching system"
+print "-----------------------------------------------"
+print " "
+
+print "Initial temperature: ${high_temp} K"
+print "Quenchrate:  ${quenchrate} K/s"
+print "Final temperature: ${final_temp} K"
+
+variable quench_time equal  (${high_temp}-${final_temp})/${quenchrate}
+variable quench_time_ps equal  (${quench_time}*1e12)
+variable quench_time_ns equal  (${quench_time}*1e9)
+
+print "Quench time: ${quench_time} s"
+print "           : ${quench_time_ns} ns"
+print "           : ${quench_time_ps} ps"
+
+variable num_timesteps equal  ${quench_time_ps}/${sim_timestep}
+print "Quenching timesteps required = ${num_timesteps} "
+print " "
+
+# Delete existing NVT fix
+unfix 1
+
+# Quenching NVT fix
+fix      1  all nvt temp ${high_temp} ${final_temp} 0.05
+
+
+# run quench simulation for computed no. of timesteps.
+run  ${num_timesteps}
+
+
+print " "
+print " >>>  Quench to ${final_temp} K complete.  <<<"
+print " "
+
+
+
+#
+# Phase 3: final NVT equilibration
+#
+print " "
+print "-----------------------------------------------"
+print "  Phase 3: final NVT equilibration"
+print "-----------------------------------------------"
+print " "
+
+
+print "Thermalising at ${final_temp} K"
+print "Thermalisation time ${final_eq_time} ps"
+
+# Delete existing NVT fix
+unfix 1
+
+# NVT fix
+fix      1  all nvt temp ${final_temp} ${final_temp} 0.05
+
+# Calc final time steps
+variable num_timesteps equal  ${final_eq_time}/${sim_timestep}
+
+print "Equilibration timesteps required = ${num_timesteps} "
+print " "
+
+# run equilibration simulation for defined no. of timesteps.
+run		${num_timesteps}
+
+print " "
+print " >>>  Final thermalisation at ${final_temp} K complete.  <<<"
+print " "
+
+
+
+#
+# Phase 4: Minimise final state to zero K
+#
+print " "
+print "-----------------------------------------------"
+print "  Phase 4: Minimise the final state to ZERO K"
+print "-----------------------------------------------"
+print " "
+
+if "!${do_minimise}" then & 
+ 'print "Not minimising the final state to zero K"  ' 
+
+
+
+# Delete existing NVT fix
+unfix 1
+
+#
+# Set the default NVE integrator 
+#
+
+fix		1 all nve
+
+# Relax box?
+if "${relax_box}" then &
+ "fix 2 all box/relax aniso 0.0 vmax 0.001"
+
+# Output data format of the log file
+if "${do_minimise}" then &
+ "thermo_style    custom time step ke pe etotal temp press lx ly lz vol density fmax fnorm"
+
+if "${do_minimise}" then &
+ "min_style ${min_method}"
+
+##  Minimize
+#minimize etol ftol maxiter maxeval
+#
+#    etol = stopping tolerance for energy (unitless)
+#    ftol = stopping tolerance for force (force units)
+#    maxiter = max iterations of minimizer
+#    maxeval = max number of force/energy evaluations
+if "${do_minimise}" then &
+ "minimize 0.0 ${force_tol} ${max_iters} 10000000000"
+
+
+print " "
+print " >>>  Job complete.  <<<"
+print " "
+
