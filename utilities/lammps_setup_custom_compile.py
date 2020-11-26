@@ -291,7 +291,7 @@ SHELL = /bin/sh
 
 CC =         mpicxx
 # Default
-OPTFLAGS = -xHost -O3
+OPTFLAGS = -xHost -O3 -std=c++11
 CCFLAGS  = $(OPTFLAGS)
 
 SHFLAGS =    -fPIC
@@ -299,7 +299,7 @@ DEPFLAGS =   -M
 
 LINK =       mpicxx
 
-LINKFLAGS =  $(OPTFLAGS)
+LINKFLAGS =  $(OPTFLAGS) -std=c++11
 
 
 
