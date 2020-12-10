@@ -102,7 +102,7 @@ thermo          ${thermo_freq}
 thermo_modify lost ignore flush yes
 
 variable doubleT  equal  ${high_temp}*2
-velocity all create ${doubleT} ${random_seed} dist gaussian
+velocity all create ${doubleT} ${random_seed} dist gaussian mom = yes rot = yes
 
 
 # Define a variable v_simtime, and set equal to simulation time for each atom
