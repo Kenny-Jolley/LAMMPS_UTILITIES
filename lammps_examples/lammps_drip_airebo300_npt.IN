@@ -86,7 +86,7 @@ thermo          ${thermo_freq}
 thermo_modify lost ignore flush yes
 
 variable doubleT  equal  ${av_temp}*2
-velocity all create ${doubleT} ${random_seed} dist gaussian
+velocity all create ${doubleT} ${random_seed} dist gaussian mom yes rot yes
 
 
 # run equilibration simulation for defined no. of timesteps.

@@ -106,7 +106,7 @@ thermo          ${thermo_freq}
 thermo_modify lost ignore flush yes
 
 variable doubleT  equal  ${high_temp}*2
-velocity all create ${doubleT} ${random_seed} dist gaussian
+velocity all create ${doubleT} ${random_seed} dist gaussian mom yes rot yes
 if "${restrict_2D}" then &
  "velocity all set NULL NULL 0.0"
 
