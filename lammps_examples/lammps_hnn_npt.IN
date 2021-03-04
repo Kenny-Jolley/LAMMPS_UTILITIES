@@ -24,6 +24,7 @@ variable output_av    equal    1.0       #  Running_average output time period [
 
 variable dump_freq    equal    1.0       #  Output frequency of dump files containing atom coordinates [ps]
 
+variable runtime      equal   1000.0     #  Simulation runtime [ps] after the Equilibration phase
 
 # Should NOT need to change these variables
 
@@ -132,6 +133,5 @@ dump            6 all custom ${dump_freqsteps} dump*.dat.gz id element x y z v_s
 
 
 # run equilibration simulation for defined no. of timesteps.
-run		2000000000
-
-
+variable avsteps equal (v_runtime/${sim_timestep})
+run     ${avsteps}
