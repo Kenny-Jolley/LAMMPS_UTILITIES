@@ -214,7 +214,7 @@ def lammps_gen_random_SiO2_B2O3_charge(**kwargs):
     for i in range(num_SiO2 + 1, num_SiO2 + 1 + 2*num_B2O3):
         # Output to file
         file.write(str(i) + "  3  " +
-                   str(si_charge) + "  " +
+                   str(b_charge) + "  " +
                    str(atom_pos_x[i]) + "  " +
                    str(atom_pos_y[i]) + "  " +
                    str(atom_pos_z[i]) + "\n")
