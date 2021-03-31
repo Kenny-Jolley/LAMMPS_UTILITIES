@@ -7,8 +7,8 @@
 #    Kenny Jolley, March 2021
 
 # imported modules
-import sys
-import os
+# import sys
+# import os
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -39,8 +39,8 @@ buck_C = 9.0821
 
 # Spline offset (preferred to be zero, but sometimes we need to ensure spline points are not negative)
 spline_offset = 50
-sp_1 = 0.45
-sp_2 = 0.90
+sp_1 = 0.40
+sp_2 = 1.00
 
 # --------------------------------------------
 
@@ -137,9 +137,10 @@ plt.legend(loc='upper right',
            )
 plt.grid(True)
 
-
 # Save ZBL plot
 plt.savefig(output_filename_prefac + 'ZBL.png', format="png")
+
+
 # plt.show()
 
 
@@ -254,21 +255,22 @@ print("f5: ", f5)
 
 # Spline equations
 # Spline
-def Spline(r, f0, f1, f2, f3, f4, f5):
-    return np.exp(f0 + f1 * r + f2 * r ** 2 + f3 * r ** 3 + f4 * r ** 4 + f5 * r ** 5)
+def spline(r_, f0_, f1_, f2_, f3_, f4_, f5_):
+    return np.exp(f0_ + f1_ * r_ + f2_ * r_ ** 2 + f3_ * r_ ** 3 + f4_ * r_ ** 4 + f5_ * r_ ** 5)
 
 
 # Spline - first derivative
-def Spline_dr(r, f0, f1, f2, f3, f4, f5):
-    return (5.0 * f5 * r ** 4 + 4.0 * f4 * r ** 3 + 3.0 * f3 * r ** 2 + 2.0 * f2 * r + f1) * Spline(r, f0, f1, f2, f3,
-                                                                                                    f4, f5)
+def spline_dr(r_, f0_, f1_, f2_, f3_, f4_, f5_):
+    return (5.0 * f5_ * r_ ** 4 + 4.0 * f4_ * r_ ** 3 + 3.0 * f3_ * r_ ** 2 + 2.0 * f2_ * r_ + f1_) * \
+           spline(r_, f0_, f1_, f2_, f3_, f4_, f5_)
 
 
 # Spline - second derivative
-def Spline_dr2(r, f0, f1, f2, f3, f4, f5):
-    return ((5.0 * f5 * r ** 4 + 4.0 * f4 * r ** 3 + 3.0 * f3 * r ** 2 + 2.0 * f2 * r + f1) ** 2 * Spline(r, f0, f1, f2,
-                                                                                                          f3, f4, f5) +
-            (20.0 * f5 * r ** 3 + 12.0 * f4 * r ** 2 + 6.0 * f3 * r + 2.0 * f2) * Spline(r, f0, f1, f2, f3, f4, f5)
+def spline_dr2(r_, f0_, f1_, f2_, f3_, f4_, f5_):
+    return ((5.0 * f5_ * r_ ** 4 + 4.0 * f4_ * r_ ** 3 + 3.0 * f3_ * r_ ** 2 + 2.0 * f2_ * r_ + f1_) ** 2 *
+            spline(r_, f0_, f1_, f2_, f3_, f4_, f5_) +
+            (20.0 * f5_ * r_ ** 3 + 12.0 * f4_ * r_ ** 2 + 6.0 * f3_ * r_ + 2.0 * f2_) *
+            spline(r_, f0_, f1_, f2_, f3_, f4_, f5_)
             )
 
 
@@ -277,13 +279,13 @@ def Spline_dr2(r, f0, f1, f2, f3, f4, f5):
 plt.figure(figsize=(9, 6))
 x = np.linspace(sp_1, sp_2, 1000)
 
-y = Spline(x, f0, f1, f2, f3, f4, f5)
+y = spline(x, f0, f1, f2, f3, f4, f5)
 plt.plot(x, y, label='Spline(r)')
 
-y = Spline_dr(x, f0, f1, f2, f3, f4, f5)
+y = spline_dr(x, f0, f1, f2, f3, f4, f5)
 plt.plot(x, y, label=r'$\frac{d}{dr} Spline(r)$')
 
-y = Spline_dr2(x, f0, f1, f2, f3, f4, f5)
+y = spline_dr2(x, f0, f1, f2, f3, f4, f5)
 plt.plot(x, y, label=r'$\frac{d^2}{dr^2} Spline(r)$')
 
 plt.xlabel(r'Pair separation, $\AA$',
@@ -322,7 +324,7 @@ y = ZBL(x, c1, c2, c3, c4, d1, d2, d3, d4, 0)
 plt.plot(x, y, label='ZBL(r)', color='red', linestyle='--')
 
 x = np.linspace(sp_1, sp_2, 1000)
-y = Spline(x, f0, f1, f2, f3, f4, f5) - spline_offset
+y = spline(x, f0, f1, f2, f3, f4, f5) - spline_offset
 plt.plot(x, y, label='Spline(r)', color='green')
 
 x = np.linspace(sp_2, 6, 1000)
@@ -368,7 +370,7 @@ y = ZBL_dr(x, c1, c2, c3, c4, d1, d2, d3, d4)
 plt.plot(x, y, label=r'$\frac{d}{dr} ZBL(r)$', color='red', linestyle='--')
 
 x = np.linspace(sp_1, sp_2, 1000)
-y = Spline_dr(x, f0, f1, f2, f3, f4, f5)
+y = spline_dr(x, f0, f1, f2, f3, f4, f5)
 plt.plot(x, y, label=r'$\frac{d}{dr} Spline(r)$', color='green')
 
 x = np.linspace(sp_2, 6, 1000)
@@ -414,7 +416,7 @@ y = ZBL_dr2(x, c1, c2, c3, c4, d1, d2, d3, d4)
 plt.plot(x, y, label=r'$\frac{d^2}{dr^2} ZBL(r)$', color='red', linestyle='--')
 
 x = np.linspace(sp_1, sp_2, 1000)
-y = Spline_dr2(x, f0, f1, f2, f3, f4, f5)
+y = spline_dr2(x, f0, f1, f2, f3, f4, f5)
 plt.plot(x, y, label=r'$\frac{d^2}{dr^2} Spline(r)$', color='green')
 
 x = np.linspace(sp_2, 6, 1000)
@@ -446,7 +448,7 @@ plt.legend(loc='upper right',
 plt.grid(True)
 
 plt.savefig(output_filename_prefac + 'Composite_ZBL-Spline-Buck_second_derivative.png', format="png")
-#plt.show()
+# plt.show()
 
 
 # Tabulate
@@ -454,13 +456,26 @@ file = open('tabulated_potl.txt', 'w+')
 
 file.write("# DATE: 2021-04-01  UNITS: real  CONTRIBUTOR: Kenny Jolley \n")
 file.write("# Tabulated ZBL-Spline-Buck potential written by zbl_buck_spline_fitter.py \n")
+file.write("# " + str(atom1_name) + "-" + str(atom2_name) + " interaction\n")
+file.write("# Charges: " + str(atom1_name) + "=" + str(atom1_Q) + " and " + str(atom2_name) + "=" + str(atom2_Q) + "\n")
+file.write("# Buck Params: A=" + str(buck_A) + " rho=" + str(buck_rho) + " C=" + str(buck_C) + "\n")
+file.write("# Spline function between " + str(sp_1) + " and " + str(sp_2) + " Angstroms, with " + str(spline_offset) +
+           " eV offset\n")
+file.write("# Spline function parameters: \n" +
+           "# f0 =%25.15f" % f0 + "\n" +
+           "# f1 =%25.15f" % f1 + "\n" +
+           "# f2 =%25.15f" % f2 + "\n" +
+           "# f3 =%25.15f" % f3 + "\n" +
+           "# f4 =%25.15f" % f4 + "\n" +
+           "# f5 =%25.15f" % f5 + "\n")
 
+# potential name
 file.write("\n" + str(atom1_name) + "-" + str(atom2_name) + "_interaction\n")
 
+# table setup
 tab_step = 0.001
-tab_min = 0.3
+tab_min = 0.2
 tab_max = 12.0
-
 tab_points = int(((tab_max - tab_min) / tab_step) + 0.5) + 1
 
 file.write("N " + str(tab_points) + " R " + str(tab_min) + '  ' + str(tab_max) + "\n")
@@ -471,13 +486,13 @@ for i in range(tab_points):
         tab_e = ZBL(r, c1, c2, c3, c4, d1, d2, d3, d4, 0)
         tab_f = ZBL_dr(r, c1, c2, c3, c4, d1, d2, d3, d4)
     elif r < sp_2:
-        tab_e = Spline(r, f0, f1, f2, f3, f4, f5) - spline_offset
-        tab_f = Spline_dr(r, f0, f1, f2, f3, f4, f5)
+        tab_e = spline(r, f0, f1, f2, f3, f4, f5) - spline_offset
+        tab_f = spline_dr(r, f0, f1, f2, f3, f4, f5)
     else:
         tab_e = Buck(r, buck_A, buck_rho, buck_C, atom1_Q, atom2_Q, E2, 0)
         tab_f = Buck_dr(r, buck_A, buck_rho, buck_C, atom1_Q, atom2_Q, E2)
 
-    file.write(str('%10d' % (i+1)) +
+    file.write(str('%10d' % (i + 1)) +
                str('%10.4f' % r) +
                str('%30.15f' % tab_e) +
                str('%30.15f' % tab_f) + '\n')
