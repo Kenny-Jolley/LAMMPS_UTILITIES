@@ -12,6 +12,7 @@ import os
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import datetime
 
 from sympy.core.symbol import symbols
 from sympy.solvers.solveset import nonlinsolve
@@ -27,19 +28,19 @@ atom1_Z = 5  # number of protons
 atom1_Q = 1.4175  # electric charge
 
 # atom 2
-atom2_name = "B"
-atom2_Z = 5  # number of protons
-atom2_Q = 1.4175  # electric charge
+atom2_name = "O"
+atom2_Z = 8  # number of protons
+atom2_Q = -0.945  # electric charge
 
 # Buckingham Potential Parameters
-buck_A = 121.1
-buck_rho = 0.49
-buck_C = 0.0
+buck_A = 15176.81
+buck_rho = 0.15
+buck_C = 9.0821
 
 # Spline offset (preferred to be zero, but sometimes we need to ensure spline points are not negative)
-spline_offset = 0
-sp_1 = 0.35
-sp_2 = 0.65
+spline_offset = 50
+sp_1 = 0.45
+sp_2 = 0.90
 
 # --------------------------------------------
 
@@ -67,6 +68,14 @@ c1 = CCONST * 0.18175
 c2 = CCONST * 0.50986
 c3 = CCONST * 0.28022
 c4 = CCONST * 0.028171
+
+# Get date today
+x = datetime.datetime.now()
+# Set pre-factor for output filename
+output_filename_prefac = (x.strftime("%Y") + x.strftime("%m") +
+                          x.strftime("%d") + x.strftime("%H") +
+                          x.strftime("%M") + x.strftime("%S") +
+                          "_Plot_")
 
 
 # print(A)
@@ -99,7 +108,7 @@ def ZBL_dr2(r, c1, c2, c3, c4, d1, d2, d3, d4):
 # Plot the ZBL potential
 plt.figure(figsize=(9, 6))
 x = np.linspace(0.01, 6, 1000)
-y = ZBL(x, c1, c2, c3, c4, d1, d2, d3, d4, spline_offset)
+y = ZBL(x, c1, c2, c3, c4, d1, d2, d3, d4, spline_offset) - spline_offset
 plt.plot(x, y, label='ZBL(r)')
 
 y = ZBL_dr(x, c1, c2, c3, c4, d1, d2, d3, d4)
@@ -112,9 +121,10 @@ plt.xlabel(r'Pair separation, $\AA$',
            fontweight='bold',
            size=16)
 plt.ylabel("Potential Energy, eV",
-           fontweight='bold', )
+           fontweight='bold',
+           size=16)
 
-plt.title("ZBL pair potential for the " + str(atom1_name) + "-" + str(atom1_name) + " interaction",
+plt.title("ZBL pair potential for the " + str(atom1_name) + "-" + str(atom2_name) + " interaction",
           fontweight='bold',
           size=18)
 
@@ -128,6 +138,8 @@ plt.legend(loc='upper right',
 plt.grid(True)
 
 
+# Save ZBL plot
+plt.savefig(output_filename_prefac + 'ZBL.png', format="png")
 # plt.show()
 
 
@@ -145,14 +157,14 @@ def Buck_dr(r, buck_A, buck_rho, buck_C, atom1_Q, atom2_Q, E2):
 # Buck - second derivative
 def Buck_dr2(r, buck_A, buck_rho, buck_C, atom1_Q, atom2_Q, E2):
     return (buck_A * np.exp(-r / buck_rho)) / buck_rho ** 2 - (42.0 * buck_C / r ** 8) + (
-                2.0 * atom1_Q * atom2_Q * E2) / r ** 3
+            2.0 * atom1_Q * atom2_Q * E2) / r ** 3
 
 
 #
 # Plot the Buck potential
 plt.figure(figsize=(9, 6))
 x = np.linspace(0.01, 6, 1000)
-y = Buck(x, buck_A, buck_rho, buck_C, atom1_Q, atom2_Q, E2, spline_offset)
+y = Buck(x, buck_A, buck_rho, buck_C, atom1_Q, atom2_Q, E2, spline_offset) - spline_offset
 plt.plot(x, y, label='Buck(r)')
 
 y = Buck_dr(x, buck_A, buck_rho, buck_C, atom1_Q, atom2_Q, E2)
@@ -165,9 +177,10 @@ plt.xlabel(r'Pair separation, $\AA$',
            fontweight='bold',
            size=16)
 plt.ylabel("Potential Energy, eV",
-           fontweight='bold', )
+           fontweight='bold',
+           size=16)
 
-plt.title("Buck pair potential for the " + str(atom1_name) + "-" + str(atom1_name) + " interaction",
+plt.title("Buck pair potential for the " + str(atom1_name) + "-" + str(atom2_name) + " interaction",
           fontweight='bold',
           size=18)
 
@@ -180,6 +193,8 @@ plt.legend(loc='upper right',
            )
 plt.grid(True)
 
+# Save BUCK plot
+plt.savefig(output_filename_prefac + 'BUCK.png', format="png")
 # plt.show()
 
 
@@ -222,12 +237,12 @@ the_solution = nonlinsolve(system, [f0, f1, f2, f3, f4, f5])
 print("The full solution: ")
 print(the_solution)
 
-f0 = the_solution.args[0][0]
-f1 = the_solution.args[0][1]
-f2 = the_solution.args[0][2]
-f3 = the_solution.args[0][3]
-f4 = the_solution.args[0][4]
-f5 = the_solution.args[0][5]
+f0 = float(the_solution.args[0][0])
+f1 = float(the_solution.args[0][1])
+f2 = float(the_solution.args[0][2])
+f3 = float(the_solution.args[0][3])
+f4 = float(the_solution.args[0][4])
+f5 = float(the_solution.args[0][5])
 
 print("f0: ", f0)
 print("f1: ", f1)
@@ -242,22 +257,227 @@ print("f5: ", f5)
 def Spline(r, f0, f1, f2, f3, f4, f5):
     return np.exp(f0 + f1 * r + f2 * r ** 2 + f3 * r ** 3 + f4 * r ** 4 + f5 * r ** 5)
 
-# todo complete derivatives
+
 # Spline - first derivative
 def Spline_dr(r, f0, f1, f2, f3, f4, f5):
-    return 0
+    return (5.0 * f5 * r ** 4 + 4.0 * f4 * r ** 3 + 3.0 * f3 * r ** 2 + 2.0 * f2 * r + f1) * Spline(r, f0, f1, f2, f3,
+                                                                                                    f4, f5)
 
 
 # Spline - second derivative
 def Spline_dr2(r, f0, f1, f2, f3, f4, f5):
-    return 0
+    return ((5.0 * f5 * r ** 4 + 4.0 * f4 * r ** 3 + 3.0 * f3 * r ** 2 + 2.0 * f2 * r + f1) ** 2 * Spline(r, f0, f1, f2,
+                                                                                                          f3, f4, f5) +
+            (20.0 * f5 * r ** 3 + 12.0 * f4 * r ** 2 + 6.0 * f3 * r + 2.0 * f2) * Spline(r, f0, f1, f2, f3, f4, f5)
+            )
+
+
+#
+# Plot the Spline part
+plt.figure(figsize=(9, 6))
+x = np.linspace(sp_1, sp_2, 1000)
+
+y = Spline(x, f0, f1, f2, f3, f4, f5)
+plt.plot(x, y, label='Spline(r)')
+
+y = Spline_dr(x, f0, f1, f2, f3, f4, f5)
+plt.plot(x, y, label=r'$\frac{d}{dr} Spline(r)$')
+
+y = Spline_dr2(x, f0, f1, f2, f3, f4, f5)
+plt.plot(x, y, label=r'$\frac{d^2}{dr^2} Spline(r)$')
+
+plt.xlabel(r'Pair separation, $\AA$',
+           fontweight='bold',
+           size=16)
+plt.ylabel("Potential Energy, eV",
+           fontweight='bold',
+           size=16)
+
+plt.title("Spline pair potential for the " + str(atom1_name) + "-" + str(atom2_name) + " interaction",
+          fontweight='bold',
+          size=18)
+
+plt.ylim(-1000, 1000)  # set y range of y axis
+plt.xlim(0, 6)  # set x range of x axis
+plt.xticks(np.linspace(0, 6, 13))
+
+plt.legend(loc='upper right',
+           fontsize=18,
+           )
+plt.grid(True)
+
+# Save Spline plot
+plt.savefig(output_filename_prefac + 'Spline.png', format="png")
+# plt.show()
+
+
+# Composite plot value
+plt.figure(figsize=(9, 6))
+x = np.linspace(0.01, sp_1, 1000)
+y = ZBL(x, c1, c2, c3, c4, d1, d2, d3, d4, 0)
+plt.plot(x, y, label='ZBL(r)', color='red')
+
+x = np.linspace(sp_1, sp_2, 1000)
+y = ZBL(x, c1, c2, c3, c4, d1, d2, d3, d4, 0)
+plt.plot(x, y, label='ZBL(r)', color='red', linestyle='--')
+
+x = np.linspace(sp_1, sp_2, 1000)
+y = Spline(x, f0, f1, f2, f3, f4, f5) - spline_offset
+plt.plot(x, y, label='Spline(r)', color='green')
+
+x = np.linspace(sp_2, 6, 1000)
+y = Buck(x, buck_A, buck_rho, buck_C, atom1_Q, atom2_Q, E2, 0)
+plt.plot(x, y, label='Buck(r)', color='blue')
+
+x = np.linspace(sp_1, sp_2, 1000)
+y = Buck(x, buck_A, buck_rho, buck_C, atom1_Q, atom2_Q, E2, 0)
+plt.plot(x, y, label='Buck(r)', color='blue', linestyle='--')
+
+plt.xlabel(r'Pair separation, $\AA$',
+           fontweight='bold',
+           size=16)
+plt.ylabel("Potential Energy, eV",
+           fontweight='bold',
+           size=16)
+
+plt.title(
+    "Composite ZBL-Spline-Buck pair potential for the " + str(atom1_name) + "-" + str(atom2_name) + " interaction",
+    fontweight='bold',
+    size=16)
+
+plt.ylim(min(V1, V2) - 20 - spline_offset, max(V1, V2) + 50 - spline_offset)  # set y range of y axis
+plt.xlim(sp_1 - 0.2, sp_2 + .2)  # set x range of x axis
+
+plt.legend(loc='upper right',
+           fontsize=18,
+           )
+plt.grid(True)
+
+plt.savefig(output_filename_prefac + 'Composite_ZBL-Spline-Buck.png', format="png")
+# plt.show()
+
+
+# Composite plot derivative
+plt.figure(figsize=(9, 6))
+x = np.linspace(0.01, sp_1, 1000)
+y = ZBL_dr(x, c1, c2, c3, c4, d1, d2, d3, d4)
+plt.plot(x, y, label=r'$\frac{d}{dr} ZBL(r)$', color='red')
+
+x = np.linspace(sp_1, sp_2, 1000)
+y = ZBL_dr(x, c1, c2, c3, c4, d1, d2, d3, d4)
+plt.plot(x, y, label=r'$\frac{d}{dr} ZBL(r)$', color='red', linestyle='--')
+
+x = np.linspace(sp_1, sp_2, 1000)
+y = Spline_dr(x, f0, f1, f2, f3, f4, f5)
+plt.plot(x, y, label=r'$\frac{d}{dr} Spline(r)$', color='green')
+
+x = np.linspace(sp_2, 6, 1000)
+y = Buck_dr(x, buck_A, buck_rho, buck_C, atom1_Q, atom2_Q, E2)
+plt.plot(x, y, label=r'$\frac{d}{dr} Buck(r)$', color='blue')
+
+x = np.linspace(sp_1, sp_2, 1000)
+y = Buck_dr(x, buck_A, buck_rho, buck_C, atom1_Q, atom2_Q, E2)
+plt.plot(x, y, label=r'$\frac{d}{dr} Buck(r)$', color='blue', linestyle='--')
+
+plt.xlabel(r'Pair separation, $\AA$',
+           fontweight='bold',
+           size=16)
+plt.ylabel("Potential Energy, eV",
+           fontweight='bold',
+           size=16)
+
+plt.title("Composite derivative ZBL-Spline-Buck pair potential for the " + str(atom1_name) + "-" + str(
+    atom2_name) + " interaction",
+          fontweight='bold',
+          size=14)
+
+plt.ylim(min(F1, F2) - 200, max(F1, F2) + 500)  # set y range of y axis
+plt.xlim(sp_1 - 0.2, sp_2 + .5)  # set x range of x axis
+
+plt.legend(loc='upper right',
+           fontsize=18,
+           )
+plt.grid(True)
+
+plt.savefig(output_filename_prefac + 'Composite_ZBL-Spline-Buck_derivative.png', format="png")
+# plt.show()
+
+
+# Composite plot second derivative
+plt.figure(figsize=(9, 6))
+x = np.linspace(0.01, sp_1, 1000)
+y = ZBL_dr2(x, c1, c2, c3, c4, d1, d2, d3, d4)
+plt.plot(x, y, label=r'$\frac{d^2}{dr^2} ZBL(r)$', color='red')
+
+x = np.linspace(sp_1, sp_2, 1000)
+y = ZBL_dr2(x, c1, c2, c3, c4, d1, d2, d3, d4)
+plt.plot(x, y, label=r'$\frac{d^2}{dr^2} ZBL(r)$', color='red', linestyle='--')
+
+x = np.linspace(sp_1, sp_2, 1000)
+y = Spline_dr2(x, f0, f1, f2, f3, f4, f5)
+plt.plot(x, y, label=r'$\frac{d^2}{dr^2} Spline(r)$', color='green')
+
+x = np.linspace(sp_2, 6, 1000)
+y = Buck_dr2(x, buck_A, buck_rho, buck_C, atom1_Q, atom2_Q, E2)
+plt.plot(x, y, label=r'$\frac{d^2}{dr^2} Buck(r)$', color='blue')
+
+x = np.linspace(sp_1, sp_2, 1000)
+y = Buck_dr2(x, buck_A, buck_rho, buck_C, atom1_Q, atom2_Q, E2)
+plt.plot(x, y, label=r'$\frac{d^2}{dr^2} Buck(r)$', color='blue', linestyle='--')
+
+plt.xlabel(r'Pair separation, $\AA$',
+           fontweight='bold',
+           size=16)
+plt.ylabel("Potential Energy, eV",
+           fontweight='bold',
+           size=16)
+
+plt.title("Composite 2nd derivative ZBL-Spline-Buck pair potential for the " + str(atom1_name) + "-" + str(
+    atom2_name) + " interaction",
+          fontweight='bold',
+          size=14)
+
+plt.ylim(min(G1, G2) - 1000, max(G1, G2) + 2000)  # set y range of y axis
+plt.xlim(sp_1 - 0.2, sp_2 + .5)  # set x range of x axis
+
+plt.legend(loc='upper right',
+           fontsize=18,
+           )
+plt.grid(True)
+
+plt.savefig(output_filename_prefac + 'Composite_ZBL-Spline-Buck_second_derivative.png', format="png")
+#plt.show()
 
 
 # Tabulate
-# todo output plots and tables
+file = open('tabulated_potl.txt', 'w+')
 
+file.write("# DATE: 2021-04-01  UNITS: real  CONTRIBUTOR: Kenny Jolley \n")
+file.write("# Tabulated ZBL-Spline-Buck potential written by zbl_buck_spline_fitter.py \n")
 
+file.write("\n" + str(atom1_name) + "-" + str(atom2_name) + "_interaction\n")
 
+tab_step = 0.001
+tab_min = 0.3
+tab_max = 12.0
 
+tab_points = int(((tab_max - tab_min) / tab_step) + 0.5) + 1
 
+file.write("N " + str(tab_points) + " R " + str(tab_min) + '  ' + str(tab_max) + "\n")
 
+for i in range(tab_points):
+    r = float(tab_min + i * tab_step)
+    if r < sp_1:
+        tab_e = ZBL(r, c1, c2, c3, c4, d1, d2, d3, d4, 0)
+        tab_f = ZBL_dr(r, c1, c2, c3, c4, d1, d2, d3, d4)
+    elif r < sp_2:
+        tab_e = Spline(r, f0, f1, f2, f3, f4, f5) - spline_offset
+        tab_f = Spline_dr(r, f0, f1, f2, f3, f4, f5)
+    else:
+        tab_e = Buck(r, buck_A, buck_rho, buck_C, atom1_Q, atom2_Q, E2, 0)
+        tab_f = Buck_dr(r, buck_A, buck_rho, buck_C, atom1_Q, atom2_Q, E2)
+
+    file.write(str('%10d' % (i+1)) +
+               str('%10.4f' % r) +
+               str('%30.15f' % tab_e) +
+               str('%30.15f' % tab_f) + '\n')
