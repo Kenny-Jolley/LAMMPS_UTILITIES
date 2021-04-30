@@ -499,9 +499,9 @@ file.write("# Spline function parameters: \n" +
 file.write("\n" + str(atom1_name) + "-" + str(atom2_name) + "_interaction\n")
 
 # table setup
-tab_step = 0.001
-tab_min = 0.2
-tab_max = 12.0
+tab_step = 0.0005
+tab_min = 0.17
+tab_max = 13.0
 tab_points = int(((tab_max - tab_min) / tab_step) + 0.5) + 1
 
 file.write("N " + str(tab_points) + " R " + str(tab_min) + '  ' + str(tab_max) + "\n\n")
@@ -522,3 +522,6 @@ for i in range(tab_points):
                str('%10.4f' % r) +
                str('%30.15f' % tab_e) +
                str('%30.15f' % tab_f) + '\n')
+
+
+# todo cosine switch to zero
