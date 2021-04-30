@@ -15,7 +15,7 @@
 
 import sys
 import os
-
+import gzip
 
 # Self contained function converts a given lammps dump file to a lammps data file (atomic format).
 def lammps_convert_output_to_atomic_data_file(filename, **kwargs):
@@ -275,13 +275,12 @@ def lammps_convert_output_to_atomic_data_file(filename, **kwargs):
     # determine if the file is zipped
     lammps_files_zipped = (filename[-3:] == '.gz')
 
-    # extract if needed
+    # Open file for reading - extract if needed
     if lammps_files_zipped:
-        os.system("gzip -kdf " + str(filename))
+        infile = gzip.open(str(filename), 'rt')
         filename = filename[:-3]
-
-    # Open file for reading
-    infile = open(filename, 'r')
+    else:
+        infile = open(filename, 'r')
 
     # output filename
     filename_out = str(output_prefix) + str(filename)
@@ -553,10 +552,6 @@ def lammps_convert_output_to_atomic_data_file(filename, **kwargs):
 
     # All done, close output file
     outputfile.close()
-
-    # if we extracted the input file, we can delete the extracted file now
-    if lammps_files_zipped:
-        os.remove(str(filename))
 
 
 # If we are running this script interactively, call the function safely
