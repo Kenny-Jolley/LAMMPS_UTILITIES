@@ -206,11 +206,11 @@ def lammps_convert_dump_to_xyzq(**kwargs):
                 infile.seek(file_pos)
 
                 # setup some arrays
-                atom_x_pos = [0 for _ in range(max_id+1)]
-                atom_y_pos = [0 for _ in range(max_id+1)]
-                atom_z_pos = [0 for _ in range(max_id+1)]
-                atom_q_col = [0 for _ in range(max_id+1)]
-                atom_el_col = [0 for _ in range(max_id+1)]
+                atom_x_pos = ["" for _ in range(max_id+1)]
+                atom_y_pos = ["" for _ in range(max_id+1)]
+                atom_z_pos = ["" for _ in range(max_id+1)]
+                atom_q_col = ["" for _ in range(max_id+1)]
+                atom_el_col = ["" for _ in range(max_id+1)]
                 atom_valid_flag = [0 for _ in range(max_id+1)]
 
                 # read data into arrays
