@@ -34,7 +34,6 @@ def lammps_lattice_relabel_atom_ids(**kwargs):
         print("  |                                          |")
         print("  |               Kenny Jolley               |")
         print("  |                 May 2019                 |")
-        print("  |          kenny.jolley@gmail.com          |")
         print("  +------------------------------------------+")
         print("   ")
 
