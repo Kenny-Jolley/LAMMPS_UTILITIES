@@ -11,6 +11,7 @@
 # output_prefix     = 'str',  filename prefix of the output xyz files
 # write_id_col      = True ,  output includes atom id column
 # write_element_col = True ,  output includes atom element column
+# sort_by_id        = True ,  sorts the atoms in order of id number
 # filename          = dump*.dat.gz  , the lammps dump file(s) to read
 
 #  Kenny Jolley, July 2020
@@ -18,8 +19,7 @@
 # imported modules
 import sys
 import os
-# todo use gzip library instead of external tool
-# import gzip
+import gzip
 
 
 # function converts a given file in lammps output format, to xyz format
@@ -32,6 +32,7 @@ def lammps_convert_dump_to_xyz(**kwargs):
     output_prefix = kwargs.get('output_prefix', 'xyz_')
     write_id_col = kwargs.get('write_id_col', True)
     write_element_col = kwargs.get('write_element_col', True)
+    sort_by_id = kwargs.get('sort_by_id', True)
     filename = kwargs.get('filename', 'dump*.dat.gz')
 
     # Welcome
@@ -41,23 +42,28 @@ def lammps_convert_dump_to_xyz(**kwargs):
         print("  |                                          |")
         print("  |               Kenny Jolley               |")
         print("  |                July 2020                 |")
-        print("  |          kenny.jolley@gmail.com          |")
         print("  +------------------------------------------+")
+        print("\n")
+        print("Verbose:      ", verbose)
+        print("header:       ", header)
+        print("header_atoms: ", header_atoms)
+
+        print("write_id_col:      ", write_id_col)
+        print("write_element_col: ", write_element_col)
+        print("sort_by_id:        ", sort_by_id)
+        print("filename:      ", filename)
+        print("output_prefix: ", output_prefix)
         print("\n")
 
     # determine if the file is zipped
     lammps_files_zipped = (filename[-3:] == '.gz')
 
-    # extract if needed
+    # Open file for reading - extract if needed
     if lammps_files_zipped:
-        if verbose:
-            print("> Dump files are zipped\n")
-
-        os.system("gzip -kdf " + str(filename))
+        infile = gzip.open(str(filename), 'rt')
         filename = filename[:-3]
-
-    # Open file for reading
-    infile = open(filename, 'r')
+    else:
+        infile = open(filename, 'r')
 
     # output filename
     filename_out = str(output_prefix) + str(filename)
@@ -155,29 +161,90 @@ def lammps_convert_dump_to_xyz(**kwargs):
                     sys.exit()
 
             # --- Now read the atom data and save to output file ---
-            while 1:
-                # read line, exit if at end of file
-                fileline = infile.readline()
-                if not fileline:
-                    break
 
-                fileline = fileline.split()
-                if write_id_col:
-                    output_file.write(str(fileline[id_col]) + ' ')
-                if write_element_col:
-                    output_file.write(str(fileline[element_col]) + ' ')
+            # if we are not sorting, just get the data and save to output
+            if not sort_by_id:
+                while 1:
+                    # read line, exit if at end of file
+                    fileline = infile.readline()
+                    if not fileline:
+                        break
 
-                output_file.write(str(fileline[x_col]) + ' ' +
-                                  str(fileline[y_col]) + ' ' +
-                                  str(fileline[z_col]) + '\n')
+                    fileline = fileline.split()
+                    if write_id_col:
+                        output_file.write(str(fileline[id_col]) + ' ')
+                    if write_element_col:
+                        output_file.write(str(fileline[element_col]) + ' ')
+
+                    output_file.write(str(fileline[x_col]) + ' ' +
+                                      str(fileline[y_col]) + ' ' +
+                                      str(fileline[z_col]) + '\n')
+            else:
+                # We need to sort the data
+                if id_col == -1:
+                    print("id column was not found")
+                    print("We need the id column to sort the data on it")
+                    sys.exit()
+
+                # find max id (in case it differs from atoms
+                max_id = 0
+                file_pos = infile.tell()
+                while 1:
+                    # read line, exit if at end of file
+                    fileline = infile.readline()
+                    if not fileline:
+                        break
+                    fileline = fileline.split()
+                    max_id = max(max_id, int(fileline[id_col]))
+                # print(max_id)
+
+                # Reset file position to top of atoms list
+                infile.seek(file_pos)
+
+                # setup some arrays
+                atom_x_pos = [0 for _ in range(max_id + 1)]
+                atom_y_pos = [0 for _ in range(max_id + 1)]
+                atom_z_pos = [0 for _ in range(max_id + 1)]
+                atom_el_col = [0 for _ in range(max_id + 1)]
+                atom_valid_flag = [0 for _ in range(max_id + 1)]
+
+                # read data into arrays
+                while 1:
+                    # read line, exit if at end of file
+                    fileline = infile.readline()
+                    if not fileline:
+                        break
+
+                    fileline = fileline.split()
+
+                    # save data in order
+                    atom_x_pos[int(fileline[id_col])] = str(fileline[x_col])
+                    atom_y_pos[int(fileline[id_col])] = str(fileline[y_col])
+                    atom_z_pos[int(fileline[id_col])] = str(fileline[z_col])
+                    atom_valid_flag[int(fileline[id_col])] = 1
+
+                    if write_element_col:
+                        if len(str(fileline[element_col])) == 1:
+                            atom_el_col[int(fileline[id_col])] = str(fileline[element_col]) + '_'
+                        else:
+                            atom_el_col[int(fileline[id_col])] = str(fileline[element_col])
+
+                # write data to output file
+                for i in range(len(atom_y_pos)):
+                    if atom_valid_flag[i]:
+                        if write_id_col:
+                            output_file.write(str(i) + ' ')
+
+                        if write_element_col:
+                            output_file.write(str(atom_el_col[i]) + ' ')
+
+                        output_file.write(str(atom_x_pos[i]) + ' ')
+                        output_file.write(str(atom_y_pos[i]) + ' ')
+                        output_file.write(str(atom_z_pos[i]) + '\n')
 
     # Close files
     infile.close()
     output_file.close()
-
-    # if we extracted the input file, we can delete the extracted file
-    if lammps_files_zipped:
-        os.remove(str(filename))
 
 
 # If we are running this script interactively, call the function safely
@@ -195,10 +262,11 @@ if __name__ == '__main__':
         # call the function
         lammps_convert_dump_to_xyz(filename=in_filename,
                                    verbose=True,
-                                   header=False,
+                                   header=True,
                                    header_atoms=True,
                                    write_id_col=True,
-                                   write_element_col=False)
+                                   write_element_col=False,
+                                   sort_by_id=True)
     else:
         # Star in filename, search whole dir for matching files
         print('star - just all files that fit pattern')
@@ -216,7 +284,8 @@ if __name__ == '__main__':
                     # call the function
                     lammps_convert_dump_to_xyz(filename=file,
                                                verbose=True,
-                                               header=False,
+                                               header=True,
                                                header_atoms=True,
                                                write_id_col=True,
-                                               write_element_col=False)
+                                               write_element_col=False,
+                                               sort_by_id=True)
