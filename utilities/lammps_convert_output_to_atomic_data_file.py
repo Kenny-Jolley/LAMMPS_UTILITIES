@@ -17,6 +17,7 @@ import sys
 import os
 import gzip
 
+
 # Self contained function converts a given lammps dump file to a lammps data file (atomic format).
 def lammps_convert_output_to_atomic_data_file(filename, **kwargs):
     # Default keyword args
@@ -298,6 +299,17 @@ def lammps_convert_output_to_atomic_data_file(filename, **kwargs):
     id_col = -1
     type_col = -1
 
+    # ensure variables are always defined
+    max_types = 0
+    timestep = 0
+    mass = 0
+    xlo = 0
+    xhi = 0
+    ylo = 0
+    yhi = 0
+    zlo = 0
+    zhi = 0
+
     # --- read the input file and write the output ---
     while 1:
         # read line, exit if at end of file
@@ -419,12 +431,12 @@ def lammps_convert_output_to_atomic_data_file(filename, **kwargs):
             break
 
     # set up array for storing atom data
-    atom_x_pos = [0 for _ in range(atoms + 1)]
-    atom_y_pos = [0 for _ in range(atoms + 1)]
-    atom_z_pos = [0 for _ in range(atoms + 1)]
+    atom_x_pos = [0.0 for _ in range(atoms + 1)]
+    atom_y_pos = [0.0 for _ in range(atoms + 1)]
+    atom_z_pos = [0.0 for _ in range(atoms + 1)]
     atom_type = [0 for _ in range(atoms + 1)]
     id_counter = 1
-    atom_type_specie = [0 for _ in range(114)]
+    atom_type_specie = ["" for _ in range(114)]
 
     # --- Now read the atom data and save to output file ---
     for i in range(1, atoms + 1):
@@ -481,7 +493,7 @@ def lammps_convert_output_to_atomic_data_file(filename, **kwargs):
             # create list
             specie_str = " # "
             for j in range(1, max_types + 1):
-                specie_str = specie_str + atom_type_specie[j] + " "
+                specie_str = specie_str + str(atom_type_specie[j]) + " "
         else:
             # null list
             specie_str = " "
