@@ -200,9 +200,14 @@ def lammps_plot_energy_vs_time(**kwargs):
         ax.plot(data_time, data_temp, color=color_list[0], linewidth=1.5, linestyle="-", label=mylabel)
     plt.legend()
 
+    # set x range between 0 and total simulation time.
+    plt.xlim([0, data_time[-1]])
+
     # Save figure using 100 dots per inch
+    filename = "_figure_plot_Energy_vs_time.png"
+    plt.savefig(filename, dpi=300)
     filename = "_figure_plot_Energy_vs_time.pdf"
-    plt.savefig(filename, dpi=100)
+    plt.savefig(filename, dpi=300)
 
     # Save raw data to a csv file
     filename = "_figure_plot_Energy_vs_time.csv"
