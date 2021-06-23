@@ -50,6 +50,10 @@ The utilities folder contains scripts for setting up lammps and manipulating the
 
 This folder contains scripts for setting up carbon systems.
 
+### glass
+
+This folder contains scripts for generating initial random lattices for borosilicate and sodium borosilicate systems. 
+
 ### lammps_examples
 
 This folder contains a collection of input scripts for simple molecular dynamics simulations.
