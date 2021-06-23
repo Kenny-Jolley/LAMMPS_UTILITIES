@@ -4,18 +4,22 @@ A collection of scripts for setting up lammps and manipulating the lammps input 
 
 ## Usage
 
-#### `lammps_convert_output_to_XYZ.py`  
+The scripts can be run just by calling them by name, or you can optionally supply the appropriate filename on the commandline.
 
-This script converts lammps output dump files to a sequence of xyz files.  Compressed files can be read (assuming gzip is installed), and star notation is used to convert all files with the same pattern.
+### `lammps_convert_dump_to_XYZ.py`  
+
+This script converts lammps output dump files to a sequence of xyz files.  Compressed files can be read.
+To convert all files with a common pattern, you can use * notation.
 
 Examples:
 ~~~
-lammps_convert_output_to_XYZ.py  filename.txt
-lammps_convert_output_to_XYZ.py  dump.dat.gz
-lammps_convert_output_to_XYZ.py  'dump*.dat.gz'
+lammps_convert_dump_to_XYZ.py  filename.txt
+lammps_convert_dump_to_XYZ.py  dump.dat.gz
+lammps_convert_dump_to_XYZ.py  'dump*.dat.gz'
 ~~~
 
-#### `lammps_lattice_relabel_atom_ids.py`
+
+### `lammps_lattice_relabel_atom_ids.py`
 
 This script reads a lammps lattice input file and relabels the atom IDs so that they are sequential.  The script also checks that the correct number of atoms are present.
 
@@ -23,7 +27,8 @@ This script reads a lammps lattice input file and relabels the atom IDs so that 
 lammps_lattice_relabel_atom_ids.py filename.txt
 ~~~
 
-#### `lammps_setup_custom_compile.py`
+## Building lammps
+### `lammps_setup_custom_compile.py`
 
 This script sets up the lammps source directory ready for compiling lammps.  
 The script pulls the latest stable release and handles updating all packages that don't require extra libraries.
