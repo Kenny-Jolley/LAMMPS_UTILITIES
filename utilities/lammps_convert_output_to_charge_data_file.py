@@ -435,11 +435,11 @@ def lammps_convert_output_to_charge_data_file(filename, **kwargs):
             break
 
     # set up array for storing atom data
-    atom_x_pos = [0 for _ in range(atoms + 1)]
-    atom_y_pos = [0 for _ in range(atoms + 1)]
-    atom_z_pos = [0 for _ in range(atoms + 1)]
+    atom_x_pos = [0.0 for _ in range(atoms + 1)]
+    atom_y_pos = [0.0 for _ in range(atoms + 1)]
+    atom_z_pos = [0.0 for _ in range(atoms + 1)]
     atom_type = [0 for _ in range(atoms + 1)]
-    atom_q = [0 for _ in range(atoms + 1)]
+    atom_q = [0.0 for _ in range(atoms + 1)]
     id_counter = 1
     atom_type_specie = ["" for _ in range(114)]
 
