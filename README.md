@@ -1,10 +1,11 @@
 # LAMMPS_UTILITIES
-A collection of utility scripts for lammps.
+A collection of standalone utility scripts for lammps.  
+This includes lattice generators, lattice converters and example lammps input scripts.
 
 
 ## Requirements
 
-This code requires [Python](http://www.python.org) to run. Currently Python 2.7, 3.5+ should work. 
+This code requires [Python](http://www.python.org) to run. Currently Python 3.5+ should work, but I have only tested on version 3.8. 
 
 
 ## Installation
