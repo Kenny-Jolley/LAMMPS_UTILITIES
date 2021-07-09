@@ -551,17 +551,17 @@ if __name__ == '__main__':
 
     # Set appropriate cell parameters
     if ot == "a":  # AIREBO
-        lat_a = 2.4175
+        lat_a = 2.4175  # C-C = 1.395744276
         lat_c = 3.358
         lat_format = "atomic"
         ot = "AIREBO"
     elif ot == "d":  # DRIP
-        lat_a = 2.4195913
+        lat_a = 2.4195913  # C-C = 1.396951688
         lat_c = 3.42424712
         lat_format = "molecular"
         ot = "DRIP"
     elif ot == "r":  # ReaxFF
-        lat_a = 2.4334
+        lat_a = 2.4334  # C-C = 1.404924145
         lat_c = 3.2567
         lat_format = "charge"
         ot = "ReaxFF"
