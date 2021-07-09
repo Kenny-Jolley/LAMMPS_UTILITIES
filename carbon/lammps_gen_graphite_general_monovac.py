@@ -404,7 +404,7 @@ def lammps_gen_graphite_general_monovac(**kwargs):
     if output_format == 'atomic':
         for cnt in range(tot_atoms):
             if atom_deleted_flag[cnt] == 0:
-                file.write(str(count) + " 1 " +
+                file.write(str(count+1) + " 1 " +
                            str(atoms_array[cnt][0]) + " " +
                            str(atoms_array[cnt][1]) + " " +
                            str(atoms_array[cnt][2]) +
@@ -413,15 +413,23 @@ def lammps_gen_graphite_general_monovac(**kwargs):
     elif output_format == 'charge':
         for cnt in range(tot_atoms):
             if atom_deleted_flag[cnt] == 0:
-                file.write(str(count) + " 1  0  " +
+                file.write(str(count+1) + " 1  0  " +
                            str(atoms_array[cnt][0]) + " " +
                            str(atoms_array[cnt][1]) + " " +
                            str(atoms_array[cnt][2]) +
                            "\n")
                 count += 1
     elif output_format == 'molecular':
-        print(">ERROR  Output type not supported yet")
-        pass
+        for cnt in range(tot_atoms):
+            if atom_deleted_flag[cnt] == 0:
+                # find layer
+                cur_layer = int(cnt / atoms_per_layer) + 1
+                file.write(str(count+1) + "  " + str(cur_layer) + "  1  " +
+                           str(atoms_array[cnt][0]) + " " +
+                           str(atoms_array[cnt][1]) + " " +
+                           str(atoms_array[cnt][2]) +
+                           "\n")
+                count += 1
     else:
         print(">ERROR  Output type not supported")
         print(output_format)
