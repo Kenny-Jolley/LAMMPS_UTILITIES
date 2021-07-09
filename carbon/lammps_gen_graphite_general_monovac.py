@@ -57,6 +57,11 @@ def lammps_gen_graphite_general_monovac(**kwargs):
     sum_vac = sum(mono_vacs_layers)
     overall_pc_vac = 100.0 * sum_vac / tot_atoms
 
+    # carbon bond length
+    cc_len = a_const/math.sqrt(3.0)
+    cc_len_buf = cc_len * 1.1    # 10 % buffer on the bond length
+    cc_len_buf2 = cc_len_buf * cc_len_buf
+
     # Welcome
     if verbose:
         print("  +--------------------------------------------+")
@@ -269,14 +274,14 @@ def lammps_gen_graphite_general_monovac(**kwargs):
                     # check dx
                     dx = abs(atoms_array[atom_id][0] - atoms_array[atom_id2][0])
                     dx = min(dx, abs(dx-box_x))
-                    if dx < 2:
+                    if dx < cc_len_buf:
                         dy = abs(atoms_array[atom_id][1] - atoms_array[atom_id2][1])
                         dy = min(dy, abs(dy - box_y))
-                        if dy < 2:
+                        if dy < cc_len_buf:
                             # bond length squared
                             dr2 = dx * dx + dy * dy
                             # check within 2 angstroms
-                            if dr2 < 4:
+                            if dr2 < cc_len_buf2:
                                 # save id to NN list
                                 atoms_NN[atom_id][num_nebs] = atom_id2
                                 num_nebs += 1
@@ -367,7 +372,7 @@ def lammps_gen_graphite_general_monovac(**kwargs):
             dist = (atoms_array[vac_nn[0]] - atoms_array[vac_nn[1]])
 
             # normalise vector
-            if np.linalg.norm(dist) < 3:
+            if np.linalg.norm(dist) < a_const*1.1:
                 dist = dist / np.linalg.norm(dist)
             else:
                 dist = -dist / np.linalg.norm(dist)
