@@ -339,7 +339,7 @@ def lammps_gen_graphite_general_stone_wales(**kwargs):
             # atom2 is one of the nearest neighbours
             atom2 = atoms_NN[atom1][randint(0, 2)]
 
-            print(atom1, atom2)
+            # print(atom1, atom2)
 
             # remove atom1,atom2 and all NN's and NNN's from the valid list
             valid_list.pop(r)
@@ -370,7 +370,7 @@ def lammps_gen_graphite_general_stone_wales(**kwargs):
 
             # centre point
             cp = (atoms_array[atom1] + atoms_array[atom2])/2.0
-            print(cp)
+            # print(cp)
 
             # rotation matrix ( 90 degrees about Z)
             rotm = np.asarray([
