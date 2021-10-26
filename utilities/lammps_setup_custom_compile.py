@@ -55,7 +55,7 @@ def lammps_setup_custom_compile(**kwargs):
     os.system("make purge")
     # sync package files with src files
     print("> sync package files with src files")
-    os.system("make package-update")
+    #os.system("make package-update")
 
     # Ensure we start with no packages
     os.system("make no-all")
@@ -64,7 +64,7 @@ def lammps_setup_custom_compile(**kwargs):
     print("> Install most commonly used packages")
     # Installs all packages that don't need extra libs
     os.system("make yes-most")
-
+    os.system("make no-poems")  # some reason this don't work so remove it
     if use_voro:
         os.system("make yes-VORONOI")   # must install voro++ first, see instructions in lib/voronoi
     if use_kim:
