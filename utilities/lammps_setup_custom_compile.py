@@ -23,6 +23,7 @@ def lammps_setup_custom_compile(**kwargs):
     verbose = kwargs.get('verbose', False)
     use_voro = kwargs.get('use_voro', False)
     use_kim = kwargs.get('use_kim', False)
+    use_quip = kwargs.get('use_quip', False)
     #use_modified_reaxff = kwargs.get('use_modified_reaxff', False)
     use_intel = kwargs.get('use_intel', False)
     use_intel_package = kwargs.get('use_intel_package', False)
@@ -56,60 +57,22 @@ def lammps_setup_custom_compile(**kwargs):
     print("> sync package files with src files")
     os.system("make package-update")
 
+    # Ensure we start with no packages
+    os.system("make no-all")
+
     # Install packages (uncomment the packages you want included)
-    print("> Install standard packages")
-    # std packages
-    os.system("make no-std")  # Ensure we start with no std packages
-    os.system("make yes-asphere")
-    os.system("make yes-body")
-    os.system("make yes-class2")
-    os.system("make yes-colloid")
-    #os.system("make yes-compress")
-    os.system("make yes-coreshell")
-    os.system("make yes-dipole")
-    #os.system("make yes-gpu")
-    os.system("make yes-GRANULAR")
-    #os.system("make yes-KIM")
-    #os.system("make yes-KOKKOS")
-    os.system("make yes-KSPACE")
-    os.system("make yes-MANYBODY")
-    os.system("make yes-MC")
-    #os.system("make yes-MEAM")
-    os.system("make yes-MISC")
-    os.system("make yes-MOLECULE")
-    os.system("make yes-MPIIO")
-    #os.system("make yes-OPT")
-    os.system("make yes-PERI")
-    #os.system("make yes-POEMS")
-    #os.system("make yes-PYTHON")
-    os.system("make yes-QEQ")
-    #os.system("make yes-REAX")
-    os.system("make yes-REPLICA")
-    os.system("make yes-RIGID")
-    os.system("make yes-SHOCK")
-    os.system("make yes-SNAP")
-    os.system("make yes-SRD")
+    print("> Install most commonly used packages")
+    # Installs all packages that don't need extra libs
+    os.system("make yes-most")
+
     if use_voro:
         os.system("make yes-VORONOI")   # must install voro++ first, see instructions in lib/voronoi
     if use_kim:
         os.system("make yes-KIM")       # must build and install the KIM library first
-
-    # user packages (uncomment the packages you want included)
-    print("> Install user packages")
-    os.system("make no-user")  # Ensure we start with no user packages
-    os.system("make yes-USER-DIFFRACTION")
-    os.system("make yes-USER-DPD")
-    os.system("make yes-USER-DRUDE")
-    os.system("make yes-USER-EFF")
-    os.system("make yes-USER-MANIFOLD")
-    os.system("make yes-USER-MGPT")
-    os.system("make yes-USER-QTB")
-    os.system("make yes-USER-REAXC")
-    os.system("make yes-USER-SMTBQ")
-    os.system("make yes-USER-SPH")
-    os.system("make yes-USER-TALLY")
+    if use_quip:
+        os.system("make yes-ML-QUIP")       # must build and install the KIM library first
     if use_intel_package:
-        os.system("make yes-USER-INTEL")   # This needs intel libraries to work
+        os.system("make yes-INTEL")   # This needs intel libraries to work
 
     # remove any deprecated src files
     print("> Purge any deprecated src files")
@@ -538,17 +501,6 @@ fastdep.exe: ../DEPEND/fastdep.c
 
 sinclude .depend
 """)
-    
-    # copy kolmogorov_crespi, lebedeva and drip potentials from USER-MISC
-    shutil.copy("USER-MISC/pair_kolmogorov_crespi_full.cpp", "pair_kolmogorov_crespi_full.cpp")
-    shutil.copy("USER-MISC/pair_kolmogorov_crespi_full.h", "pair_kolmogorov_crespi_full.h")
-    shutil.copy("USER-MISC/pair_kolmogorov_crespi_z.cpp", "pair_kolmogorov_crespi_z.cpp")
-    shutil.copy("USER-MISC/pair_kolmogorov_crespi_z.h", "pair_kolmogorov_crespi_z.h")
-    
-    shutil.copy("USER-MISC/pair_lebedeva_z.cpp", "pair_lebedeva_z.cpp")
-    shutil.copy("USER-MISC/pair_lebedeva_z.h", "pair_lebedeva_z.h")
-    shutil.copy("USER-MISC/pair_drip.cpp", "pair_drip.cpp")
-    shutil.copy("USER-MISC/pair_drip.h", "pair_drip.h")
 
     '''
     # Copy customised reax/c source files to the src directory
@@ -592,6 +544,7 @@ sinclude .depend
 if __name__ == '__main__':
     use_voro = False
     use_kim = False
+    use_quip = False
     use_modified_reaxff = False
     use_intel = False
     use_intel_package = False
@@ -617,12 +570,6 @@ if __name__ == '__main__':
     
     # Ask the user if they want to continue
     user_choice = str(input('Do you wish to continue? (y/n) : ')).lower().strip()
-    '''
-    if sys.version_info[0] < 3:
-        user_choice = str(raw_input('Do you wish to continue? (y/n) : ')).lower().strip()
-    else:
-        user_choice = str(input('Do you wish to continue? (y/n) : ')).lower().strip()
-    '''
     if (user_choice != 'yes') and (user_choice != 'y'):
         sys.exit()
 
@@ -633,10 +580,6 @@ if __name__ == '__main__':
     print("> VORO++ is available here:   ")
     print("> http://math.lbl.gov/voro++/ ")
     user_choice = str(input('Do you wish to include VORO++ ? (y/n) : ')).lower().strip()
-    '''if sys.version_info[0] < 3:
-        user_choice = str(raw_input('Do you wish to include VORO++ ? (y/n) : ')).lower().strip()
-    else:
-        user_choice = str(input('Do you wish to include VORO++ ? (y/n) : ')).lower().strip()'''
     if (user_choice == 'yes') or (user_choice == 'y'):
         use_voro = True
 
@@ -645,12 +588,17 @@ if __name__ == '__main__':
     print("> Lammps can be built with the KIM library   ")
     print("> To use this package, you must install it before compiling lammps, see instructions in lib/kim")
     user_choice = str(input('Do you wish to include KIM ? (y/n) : ')).lower().strip()
-    '''if sys.version_info[0] < 3:
-        user_choice = str(raw_input('Do you wish to include VORO++ ? (y/n) : ')).lower().strip()
-    else:
-        user_choice = str(input('Do you wish to include VORO++ ? (y/n) : ')).lower().strip()'''
     if (user_choice == 'yes') or (user_choice == 'y'):
         use_kim = True
+
+    # Ask user if Quippy should be included
+    print("   ")
+    print("> Lammps can be built with the ML-QUIP library   ")
+    print("> To use this package, you must install it before compiling lammps, see instructions in lib/quip")
+    user_choice = str(input('Do you wish to include ML-QUIP ? (y/n) : ')).lower().strip()
+    if (user_choice == 'yes') or (user_choice == 'y'):
+        use_quip = True
+
 
     '''print("   ")
     print("> A custom splining function between ReaxFF and ZBL for carbon systems can be added.")
@@ -664,10 +612,6 @@ if __name__ == '__main__':
     print("> This script generates a makefile.")
     print("> You need to choose between INTEL or GCC compiler options.")
     user_choice = str(input('Do you wish to use the INTEL compilers ? (y/n) : ')).lower().strip()
-    '''if sys.version_info[0] < 3:
-        user_choice = str(raw_input('Do you wish to use the INTEL compilers ? (y/n) : ')).lower().strip()
-    else:
-        user_choice = str(input('Do you wish to use the INTEL compilers ? (y/n) : ')).lower().strip()'''
     if (user_choice == 'yes') or (user_choice == 'y'):
         use_intel = True
 
@@ -676,10 +620,6 @@ if __name__ == '__main__':
         print("   ")
         print("> You can use the optional USER-INTEL package.")
         user_choice = input('Do you wish to use the USER-INTEL package? (y/n)?: ')
-        '''if sys.version_info[0] < 3:
-            user_choice = raw_input('Do you wish to use the USER-INTEL package? (y/n)?: ')
-        else:
-            user_choice = input('Do you wish to use the USER-INTEL package? (y/n)?: ')'''
         if (user_choice == 'yes') or (user_choice == 'y'):
             use_intel_package = True
     
@@ -689,6 +629,7 @@ if __name__ == '__main__':
     lammps_setup_custom_compile(verbose=True,
                                 use_voro=use_voro,
                                 use_kim=use_kim,
+                                us_quip=use_quip,
                                 use_modified_reaxff=use_modified_reaxff,
                                 use_intel=use_intel,
                                 use_intel_package=use_intel_package)
