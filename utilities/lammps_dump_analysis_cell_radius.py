@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
-# This function converts the output dump files of a lammps simulation to xyz files.
+# This function reads lammps output dump files and computes the center of mass and radial histogram of the atoms.
 
-# The script needs to know the filenames of the lammps dump files.
+# The script needs to know the filename of the lammps dump files.
 # When run interactively, this can be passed on the commandline, or the script can ask the user.
+# Give a single filename dump01234.dat.gz or a general pattern dump*.dat.gz
+
 
 # Keyword arguments:
 # verbose           = True , prints some comments to the screen.
@@ -17,61 +19,54 @@
 #  Kenny Jolley, July 2020
 
 # imported modules
+import math
 import sys
 import os
 import gzip
 
 
-# function converts a given file in lammps output format, to xyz format
-def lammps_convert_dump_to_xyz(**kwargs):
+# function reads lammps output dump file and computes the center of mass and radial histogram of the atoms.
+def lammps_dump_analysis_cell_radius(**kwargs):
 
     # Default keyword args
     verbose = kwargs.get('verbose', False)
-    header = kwargs.get('header', True)
-    header_atoms = kwargs.get('header_atoms', True)
-    output_prefix = kwargs.get('output_prefix', 'xyz_')
-    write_id_col = kwargs.get('write_id_col', True)
-    write_element_col = kwargs.get('write_element_col', True)
-    sort_by_id = kwargs.get('sort_by_id', True)
+    overwrite_output = kwargs.get('overwrite_output', False)
     filename = kwargs.get('filename', 'dump*.dat.gz')
+    output_filename = kwargs.get('output_filename', 'output.txt')
 
     # Welcome
     if verbose:
         print("  +------------------------------------------+")
-        print("  |    Converts LAMMPS dump files to XYZ     |")
-        print("  |                                          |")
+        print("  |        LAMMPS dump file analysis         |")
+        print("  |   Calculates cell radius distribution    |")
         print("  |               Kenny Jolley               |")
-        print("  |                July 2020                 |")
-        print("  +------------------------------------------+")
-        print("\n")
-        print("Verbose:      ", verbose)
-        print("header:       ", header)
-        print("header_atoms: ", header_atoms)
+        print("  |                 Dec 2021                 |")
+        print("  +------------------------------------------+\n")
 
-        print("write_id_col:      ", write_id_col)
-        print("write_element_col: ", write_element_col)
-        print("sort_by_id:        ", sort_by_id)
-        print("filename:      ", filename)
-        print("output_prefix: ", output_prefix)
-        print("\n")
+        print("Verbose:          ", verbose)
+        print("Input file:       ", filename)
+        print("Output file:      ", output_filename)
+        print("Overwrite output: ", overwrite_output)
 
+    # - Get xyz atom coordinates -
     # determine if the file is zipped
     lammps_files_zipped = (filename[-3:] == '.gz')
 
     # Open file for reading - extract if needed
     if lammps_files_zipped:
         infile = gzip.open(str(filename), 'rt')
-        filename = filename[:-3]
     else:
         infile = open(filename, 'r')
 
-    # output filename
-    filename_out = str(output_prefix) + str(filename)
-    # open output for writing
-    output_file = open(filename_out, 'w')
+    # Default variables
+    num_atoms = 10000000
+    # xyz data arrays
+    atom_x_pos = []
+    atom_y_pos = []
+    atom_z_pos = []
 
-    # --- read the input file and write the output ---
-    while 1:
+    # --- read the input file and save data ---
+    while True:
         # read line, exit if at end of file
         fileline = infile.readline()
         if not fileline:
@@ -89,38 +84,9 @@ def lammps_convert_dump_to_xyz(**kwargs):
             # next line is the number of atoms
             fileline = infile.readline()
             fileline = fileline.split()
-
+            num_atoms = fileline[0]
             if verbose:
-                print("Atoms: " + str(fileline[0]))
-            if header or header_atoms:
-                output_file.write(str(fileline[0]) + '\n')
-
-        # now we look for the cell size parameters
-        if (fileline[0] == "ITEM:") and (fileline[1] == "BOX") and (fileline[2] == "BOUNDS"):
-            # next lines are the box size
-            # save the box size  ( this assumes  xlo xhi  is given and that xlo =0)
-            # x
-            fileline = infile.readline()
-            fileline = fileline.split()
-            dump_file_box_x = float(fileline[1])
-            # y
-            fileline = infile.readline()
-            fileline = fileline.split()
-            dump_file_box_y = float(fileline[1])
-            # z
-            fileline = infile.readline()
-            fileline = fileline.split()
-            dump_file_box_z = float(fileline[1])
-
-            if verbose:
-                print("Size: " +
-                      str(dump_file_box_x) + '  ' +
-                      str(dump_file_box_y) + '  ' +
-                      str(dump_file_box_z) + '\n')
-            if header:
-                output_file.write(str(dump_file_box_x) + '  ' +
-                                  str(dump_file_box_y) + '  ' +
-                                  str(dump_file_box_z) + '\n')
+                print("> Atoms: " + str(num_atoms))
 
         # now we look for the atom data
         if (fileline[0] == "ITEM:") and (fileline[1] == "ATOMS"):
@@ -128,8 +94,7 @@ def lammps_convert_dump_to_xyz(**kwargs):
             x_col = -1
             y_col = -1
             z_col = -1
-            element_col = -1
-            id_col = -1
+
             for i in range(2, len(fileline)):
                 if fileline[i] == "x":
                     x_col = i-2
@@ -137,10 +102,7 @@ def lammps_convert_dump_to_xyz(**kwargs):
                     y_col = i-2
                 if fileline[i] == "z":
                     z_col = i-2
-                if fileline[i] == "element":
-                    element_col = i-2
-                if fileline[i] == "id":
-                    id_col = i-2
+
             # check that all required columns were found
             if x_col == -1:
                 print("X column was not found")
@@ -151,99 +113,96 @@ def lammps_convert_dump_to_xyz(**kwargs):
             if z_col == -1:
                 print("Z column was not found")
                 sys.exit()
-            if write_element_col:
-                if element_col == -1:
-                    print("element column was not found")
-                    sys.exit()
-            if write_id_col:
-                if id_col == -1:
-                    print("id column was not found")
-                    sys.exit()
 
-            # --- Now read the atom data and save to output file ---
+            # --- Now read the atom data and save to arrays ---
+            while True:
+                # read line, exit if at end of file
+                fileline = infile.readline()
+                if not fileline:
+                    break
 
-            # if we are not sorting, just get the data and save to output
-            if not sort_by_id:
-                while 1:
-                    # read line, exit if at end of file
-                    fileline = infile.readline()
-                    if not fileline:
-                        break
+                fileline = fileline.split()
 
-                    fileline = fileline.split()
-                    if write_id_col:
-                        output_file.write(str(fileline[id_col]) + ' ')
-                    if write_element_col:
-                        output_file.write(str(fileline[element_col]) + ' ')
+                # save xyz data in lists
+                atom_x_pos.append(float(fileline[x_col]))
+                atom_y_pos.append(float(fileline[y_col]))
+                atom_z_pos.append(float(fileline[z_col]))
 
-                    output_file.write(str(fileline[x_col]) + ' ' +
-                                      str(fileline[y_col]) + ' ' +
-                                      str(fileline[z_col]) + '\n')
-            else:
-                # We need to sort the data
-                if id_col == -1:
-                    print("id column was not found")
-                    print("We need the id column to sort the data on it")
-                    sys.exit()
+    # Debug print xyz coords
+    # for x, y, z in zip(atom_x_pos, atom_y_pos, atom_z_pos):
+    #     print(x, y, z)
 
-                # find max id (in case it differs from atoms
-                max_id = 0
-                file_pos = infile.tell()
-                while 1:
-                    # read line, exit if at end of file
-                    fileline = infile.readline()
-                    if not fileline:
-                        break
-                    fileline = fileline.split()
-                    max_id = max(max_id, int(fileline[id_col]))
-                # print(max_id)
-
-                # Reset file position to top of atoms list
-                infile.seek(file_pos)
-
-                # setup some arrays
-                atom_x_pos = ["" for _ in range(max_id + 1)]
-                atom_y_pos = ["" for _ in range(max_id + 1)]
-                atom_z_pos = ["" for _ in range(max_id + 1)]
-                atom_el_col = ["" for _ in range(max_id + 1)]
-                atom_valid_flag = [0 for _ in range(max_id + 1)]
-
-                # read data into arrays
-                while 1:
-                    # read line, exit if at end of file
-                    fileline = infile.readline()
-                    if not fileline:
-                        break
-
-                    fileline = fileline.split()
-
-                    # save data in order
-                    atom_x_pos[int(fileline[id_col])] = str(fileline[x_col])
-                    atom_y_pos[int(fileline[id_col])] = str(fileline[y_col])
-                    atom_z_pos[int(fileline[id_col])] = str(fileline[z_col])
-                    atom_valid_flag[int(fileline[id_col])] = 1
-
-                    if write_element_col:
-                        if len(str(fileline[element_col])) == 1:
-                            atom_el_col[int(fileline[id_col])] = str(fileline[element_col]) + '_'
-                        else:
-                            atom_el_col[int(fileline[id_col])] = str(fileline[element_col])
-
-                # write data to output file
-                for i in range(len(atom_y_pos)):
-                    if atom_valid_flag[i]:
-                        if write_id_col:
-                            output_file.write(str(i) + ' ')
-
-                        if write_element_col:
-                            output_file.write(str(atom_el_col[i]) + ' ')
-
-                        output_file.write(str(atom_x_pos[i]) + ' ')
-                        output_file.write(str(atom_y_pos[i]) + ' ')
-                        output_file.write(str(atom_z_pos[i]) + '\n')
-
-    # Close files
+    # Close input file
     infile.close()
+
+    # Calculate center of mass
+    tot_x = 0
+    tot_y = 0
+    tot_z = 0
+    for x, y, z in zip(atom_x_pos, atom_y_pos, atom_z_pos):
+        tot_x += x
+        tot_y += y
+        tot_z += z
+    tot_x /= len(atom_x_pos)
+    tot_y /= len(atom_y_pos)
+    tot_z /= len(atom_z_pos)
+
+    if int(num_atoms) != len(atom_x_pos):
+        print("Warning, did not read in expected number of atoms")
+        print('num_atoms ', num_atoms)
+        print('len array ', len(atom_z_pos))
+
+    # Histogram calc
+    hist_min = 0
+    hist_bin_width = 0.05
+    hist_max = 10
+
+    hist_steps = (hist_max-hist_min)/hist_bin_width
+    print(hist_steps)
+
+    hist_vals = [hist_min + hist_bin_width * x for x in range(int(hist_steps)+1)]
+    hist_count = [0 for _ in range(int(hist_steps) + 1)]
+    print(hist_vals)
+
+    # sort into bins
+    for x, y, z in zip(atom_x_pos, atom_y_pos, atom_z_pos):
+        dx = x - tot_x
+        dy = y - tot_y
+        dz = z - tot_z
+        dr = math.sqrt(dx*dx + dy*dy + dz*dz)
+
+        # add one to relevant bin
+        b = int((dr-hist_min) / hist_bin_width)
+        if b < len(hist_count):
+            hist_count[b] += 1
+
+    print(hist_vals)
+    print(hist_count)
+
+    # open/setup output data file
+    if overwrite_output or not os.path.isfile(output_filename):
+        # open file for writing, make header
+        output_file = open(output_filename, 'w')
+        # Write header
+        output_file.write('Dump filename,atoms,CoM x,CoM y,CoM z,')
+        for x in hist_vals:
+            output_file.write(str(x) + ',')
+        output_file.write('\n')
+    else:
+        # open for appending
+        output_file = open(output_filename, 'a')
+
+    # Print data
+    output_file.write(str(filename) + ',' +
+                      str(num_atoms) + ',' +
+                      str(tot_x) + ',' +
+                      str(tot_y) + ',' +
+                      str(tot_z) + ','
+                      )
+    for x in hist_count:
+        output_file.write(str(x) + ',')
+    output_file.write('\n')
+    # Close files
     output_file.close()
 
 
@@ -258,23 +217,25 @@ if __name__ == '__main__':
 
     # if filename contains a * char, loop through all files in current dir with the same prefix and suffix
     if "*" not in in_filename:
-        print('no star - just converting given file')
+        print('> Single file calculation: ', in_filename)
+        print('> No * - Calculation for given file only')
         # call the function
-        lammps_convert_dump_to_xyz(filename=in_filename,
-                                   verbose=True,
-                                   header=True,
-                                   header_atoms=True,
-                                   write_id_col=True,
-                                   write_element_col=False,
-                                   sort_by_id=True)
+        lammps_dump_analysis_cell_radius(filename=in_filename,
+                                         verbose=True,
+                                         overwrite_output=True,
+                                         output_filename='output.csv')
     else:
         # Star in filename, search whole dir for matching files
-        print('star - just all files that fit pattern')
+        print('Multi-file calculation: ', in_filename)
+        print('* - Calculation for all matching files')
         filename_list = in_filename.split('*')
         filename_prefix = filename_list[0]
         filename_suffix = filename_list[1]
         # get a list of files in the directory
         file_list = os.listdir(os.getcwd())
+
+        # overwrite file flag
+        file_write_flag = True
 
         # filter list to include valid files only
         for file in file_list:
@@ -282,10 +243,10 @@ if __name__ == '__main__':
                 if filename_suffix == file[-len(filename_suffix):]:
                     print(file)
                     # call the function
-                    lammps_convert_dump_to_xyz(filename=file,
-                                               verbose=True,
-                                               header=True,
-                                               header_atoms=True,
-                                               write_id_col=True,
-                                               write_element_col=False,
-                                               sort_by_id=True)
+                    lammps_dump_analysis_cell_radius(filename=file,
+                                                     verbose=True,
+                                                     overwrite_output=file_write_flag,
+                                                     output_filename='output.csv')
+
+                    # ensure subsequent call don't overwrite output
+                    file_write_flag = False
