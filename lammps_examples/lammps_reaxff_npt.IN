@@ -120,8 +120,11 @@ variable Length_x equal lx
 variable Length_y equal ly
 variable Length_z equal lz
 variable Temperature equal temp
+variable Pressure equal press
+variable Energy equal etotal
+variable sysDensity equal density
 variable avsteps equal (v_output_av/${sim_timestep})
-fix 2 all ave/time 1 ${avsteps} ${avsteps} v_Length_x v_Length_y v_Length_z v_Temperature ave running file Running_average.txt format %20.16g title1 "Running average data for fix 2"
+fix 2 all ave/time 1 ${avsteps} ${avsteps} v_Length_x v_Length_y v_Length_z v_Temperature v_Pressure v_Energy v_sysDensity ave running file Running_average.txt format %20.16g title1 "Running average data for fix 2"
 
 # Define a variable v_simtime, and set equal to simulation time for each atom
 variable simtime atom time
