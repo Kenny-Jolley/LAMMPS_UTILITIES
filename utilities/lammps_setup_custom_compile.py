@@ -629,7 +629,7 @@ if __name__ == '__main__':
     lammps_setup_custom_compile(verbose=True,
                                 use_voro=use_voro,
                                 use_kim=use_kim,
-                                us_quip=use_quip,
+                                use_quip=use_quip,
                                 use_modified_reaxff=use_modified_reaxff,
                                 use_intel=use_intel,
                                 use_intel_package=use_intel_package)
