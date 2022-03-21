@@ -19,7 +19,7 @@ variable input_file   string  'lammps.lattice.dat'    #  Input filename of the l
 variable av_temp      equal   300        #  System temperature [K] 
 variable init_eq_time equal    10.0      #  Initial Equilibration time [ps]
 
-variable output_freq  equal    0.005       #  Output period of data in log files [ps]
+variable output_freq  equal    0.5       #  Output period of data in log files [ps]
 variable output_av    equal    1.0       #  Running_average output time period [ps]
 
 variable dump_freq    equal    1.0       #  Output frequency of dump files containing atom coordinates [ps]
@@ -50,7 +50,7 @@ read_data       ${input_file}
 # To read in GAP-20, we first choose the pair_style 'quip
 pair_style      quip 
 
-# We then provide the path to the Carbon_GAP_20.xml file. Note that the quotations should be left empty for GAP_20. 
+# Provide the full path to the Carbon_GAP_20.xml file. Note that the quotations should be left empty for GAP_20.
 pair_coeff      * * /Network/Servers/scigrid1-mps-4.lut.ac.uk/Volumes/Users_HD3/MD_NFS/makj/Carbon_GAP_20/Carbon_GAP_20_potential/Carbon_GAP_20.xml "" 6
 
 
@@ -132,8 +132,10 @@ compute pe all pe/atom
 # Write lattice to output file, custom column format.
 variable dump_freqsteps equal (v_dump_freq/${sim_timestep})
 dump            6 all custom ${dump_freqsteps} dump*.dat.gz id element x y z v_simtime c_ke c_pe
-# use LBOMD convention for atom names
-#dump_modify     6 element C_
+# High precision output
+dump_modify     6 format 3 " %25.15f "
+dump_modify     6 format 4 " %25.15f "
+dump_modify     6 format 5 " %25.15f "
 
 
 # run equilibration simulation for defined no. of timesteps.
