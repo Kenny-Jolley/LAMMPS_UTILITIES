@@ -225,10 +225,7 @@ if __name__ == '__main__':
         # Otherwise, ask user, cell dimensions
         while True:
             try:
-                if sys.version_info[0] < 3:
-                    cellsize = int(raw_input('Enter number of cells in x dir : '))
-                else:
-                    cellsize = int(input('Enter number of cells in x dir : '))
+                cellsize = int(input('Enter number of cells in x dir : '))
                 if cellsize > 0:
                     break
                 else:
@@ -238,10 +235,7 @@ if __name__ == '__main__':
         cells[0] = cellsize
         while True:
             try:
-                if sys.version_info[0] < 3:
-                    cellsize = int(raw_input('Enter number of cells in y dir : '))
-                else:
-                    cellsize = int(input('Enter number of cells in y dir : '))
+                cellsize = int(input('Enter number of cells in y dir : '))
                 if cellsize > 0:
                     break
                 else:
@@ -251,10 +245,7 @@ if __name__ == '__main__':
         cells[1] = cellsize
         while True:
             try:
-                if sys.version_info[0] < 3:
-                    cellsize = int(raw_input('Enter number of cells in z dir : '))
-                else:
-                    cellsize = int(input('Enter number of cells in z dir : '))
+                cellsize = int(input('Enter number of cells in z dir : '))
                 if cellsize > 0:
                     break
                 else:
@@ -266,11 +257,7 @@ if __name__ == '__main__':
         # stacking
         stacking_valid = False
         while not stacking_valid:
-            if sys.version_info[0] < 3:
-                stacking = str(raw_input('What stacking do you want (ab,abc)?: '))
-            else:
-                stacking = str(input('What stacking do you want (ab,abc)?: '))
-    
+            stacking = str(input('What stacking do you want (ab,abc)?: '))
             stacking_error = False
             if len(stacking) < 1:
                 print(">>> ERROR  <<< stacking order cannot be zero length")
