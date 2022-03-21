@@ -59,8 +59,9 @@ def objective_function(params):
     lmp.command("read_data lammps.lattice.dat")
 
     # define the potential
-    lmp.command("pair_style    airebo  3.0")
-    lmp.command("pair_coeff    * * CH.airebo C")
+    lmp.command("pair_style    quip")
+    # Provide the full path to the Carbon_GAP_20.xml file. Note that the quotations should be left empty for GAP_20.
+    lmp.command('pair_coeff   * * /Users_HD3/makj/Carbon_GAP_20/Carbon_GAP_20_potential/Carbon_GAP_20.xml "" 6 ')
     
     # set neighbour list
     lmp.command("neighbor    2. bin")
