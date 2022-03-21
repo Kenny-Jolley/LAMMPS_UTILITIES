@@ -164,12 +164,16 @@ def lammps_dump_analysis_cell_radius(**kwargs):
     hist_count = [0 for _ in range(int(hist_steps) + 1)]
     print(hist_vals)
 
+    # Average Radius
+    average_radius = 0.0
+
     # sort into bins
     for x, y, z in zip(atom_x_pos, atom_y_pos, atom_z_pos):
         dx = x - tot_x
         dy = y - tot_y
         dz = z - tot_z
         dr = math.sqrt(dx*dx + dy*dy + dz*dz)
+        average_radius += dr
 
         # add one to relevant bin
         b = int((dr-hist_min) / hist_bin_width)
@@ -179,12 +183,15 @@ def lammps_dump_analysis_cell_radius(**kwargs):
     print(hist_vals)
     print(hist_count)
 
+    # Complete calculation of average radius
+    average_radius /= len(atom_x_pos)
+
     # open/setup output data file
     if overwrite_output or not os.path.isfile(output_filename):
         # open file for writing, make header
         output_file = open(output_filename, 'w')
         # Write header
-        output_file.write('Dump filename,atoms,CoM x,CoM y,CoM z,')
+        output_file.write('Dump filename,atoms,CoM x,CoM y,CoM z,Avg r,')
         for x in hist_vals:
             output_file.write(str(x) + ',')
         output_file.write('\n')
@@ -197,7 +204,8 @@ def lammps_dump_analysis_cell_radius(**kwargs):
                       str(num_atoms) + ',' +
                       str(tot_x) + ',' +
                       str(tot_y) + ',' +
-                      str(tot_z) + ','
+                      str(tot_z) + ',' +
+                      str(average_radius) + ','
                       )
     for x in hist_count:
         output_file.write(str(x) + ',')
@@ -233,10 +241,38 @@ if __name__ == '__main__':
         filename_suffix = filename_list[1]
         # get a list of files in the directory
         file_list = os.listdir(os.getcwd())
+        # print(file_list)
+
+        # File numbers
+        file_nos = []
+        # filter list to include valid files only and isolate the number in the filename
+        for i in range(len(file_list)):
+            if filename_prefix == file_list[i][:len(filename_prefix)]:
+                if filename_suffix == file_list[i][-len(filename_suffix):]:
+                    file_nos.append(int ( file_list[i][len(filename_prefix):-len(filename_suffix)]))
+
+        # Sort files numbers in order
+        file_nos = sorted(file_nos)
+        # print(file_nos )
 
         # overwrite file flag
         file_write_flag = True
 
+        # Call function for each file
+        for file in file_nos:
+            # Reconstruct filename
+            fn = filename_prefix + str(file) + filename_suffix
+            print(fn)
+            # call the function
+            lammps_dump_analysis_cell_radius(filename=fn,
+                                             verbose=True,
+                                             overwrite_output=file_write_flag,
+                                             output_filename='output.csv')
+
+            # ensure subsequent call don't overwrite output
+            file_write_flag = False
+
+'''           
         # filter list to include valid files only
         for file in file_list:
             if filename_prefix == file[:len(filename_prefix)]:
@@ -250,3 +286,4 @@ if __name__ == '__main__':
 
                     # ensure subsequent call don't overwrite output
                     file_write_flag = False
+'''
