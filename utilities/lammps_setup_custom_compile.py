@@ -562,7 +562,7 @@ if __name__ == '__main__':
     print("> You must clone the github repo yourself with:")
     print("   git clone https://github.com/lammps/lammps.git mylammps")
     print("> Or:")
-    print("   git clone git://github.com/lammps/lammps.git mylammps\n")
+    print("   git clone git@github.com/lammps/lammps.git mylammps\n")
 
     print(">  This script should then be run from the src directory of your lammps installation")
     print(">  The current directory is: ")
