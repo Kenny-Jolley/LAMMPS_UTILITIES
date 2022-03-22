@@ -26,8 +26,20 @@ def lammps_gen_graphite_gap(**kwargs):
     verbose = kwargs.get('verbose', False)
     forced = kwargs.get('forced', False)
     # Default constants for the GAP  Potential
-    a_const = kwargs.get('a_const', 2.46523652)
-    c_const = kwargs.get('c_const', 3.35293448)
+    # 12, 21,  8, ab  cell: 2.46523653, 3.3529348      5 nm -129469.522413 eV
+    #  7, 12,  5, ab  cell: 2.46522937, 3.35309489     3 nm  -26972.817183948533  eV
+    #  5,  8,  3, ab  cell: 2.46523359, 3.35294313     2 nm   -7706.519194  eV
+
+    #  2,  4,  2, ab  cell: 2.46523937, 3.35299657     1 nm   -1027.5358935236966 eV
+
+    #  5,  8,  2, abc cell: 2.46397486, 3.23903982     2 nm   -7705.329193287507 eV
+    #  2,  4,  1, abc cell: 2.4639729 , 3.23894606     1 nm    -770.5329192386823 eV
+
+    #  5,  8,  3, aa  cell: 2.46691648, 3.19997183     2 nm   -7696.911117 eV
+    #  2,  4,  2, aa  cell: 2.46692806, 3.20008912     1 nm   -1026.2548168401106 eV
+
+    a_const = kwargs.get('a_const', 2.46523)
+    c_const = kwargs.get('c_const', 3.353)
     stacking = kwargs.get('stacking', 'ab')
     filename = kwargs.get('filename', 'lammps.lattice.dat')
     cells = kwargs.get('cells', [1, 1, 1])

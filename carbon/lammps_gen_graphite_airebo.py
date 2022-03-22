@@ -26,6 +26,18 @@ def lammps_gen_graphite_airebo(**kwargs):
     verbose = kwargs.get('verbose', False)
     forced = kwargs.get('forced', False)
     # Default constants for the AIREBO  Potential
+    # 48, 83, 30, ab  cell: 2.41753712, 3.357841      20 nm -7149312.767421 eV
+    # 12, 21,  8, ab  cell: 2.41751194, 3.35802329     5 nm  -120590.817501 eV
+    #  7, 12,  5, ab  cell: 2.41751181, 3.35798678     3 nm   -25123.086978 eV
+    #  5,  8,  3, ab  cell: 2.41751085, 3.35799574     2 nm    -7178.024851 eV
+
+    #  7, 12,  5, aa  cell: 2.41745015, 3.38333128     3 nm   -25119.998844 eV
+    #  5,  8,  3, aa  cell: 2.41744913, 3.3833082      2 nm    -7177.142527 eV
+
+    # 12, 21,  5, abc cell: 2.41750965, 3.3580461      5 nm  -113053.924245 eV
+    #  7, 12,  3, abc cell: 2.41751085, 3.35804799     3 nm   -22610.784848 eV
+    #  5,  8,  2, abc cell: 2.41751194, 3.3580575      2 nm    -7178.026936 eV
+
     a_const = kwargs.get('a_const', 2.4175)
     c_const = kwargs.get('c_const', 3.358)
     stacking = kwargs.get('stacking', 'ab')
@@ -73,12 +85,8 @@ def lammps_gen_graphite_airebo(**kwargs):
             print("> Existing file " + str(filename) + " detected.")
             print("> lammps_gen_graphite_airebo function wants to overwrite this file")
         
-            # Ask user if file should be overwritten (python 2/3 handling)
-            if sys.version_info[0] < 3:
-                user_choice = raw_input('Do you wish to overwrite the existing file? (y/n): ')
-            else:
-                user_choice = input('Do you wish to overwrite the existing file? (y/n): ')
-    
+            # Ask user if file should be overwritten
+            user_choice = input('Do you wish to overwrite the existing file? (y/n): ')
             user_choice = user_choice.lower()
             
             if (user_choice == 'yes') or (user_choice == 'y') or (user_choice == 'yea'):
