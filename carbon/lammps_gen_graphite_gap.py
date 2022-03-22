@@ -26,9 +26,8 @@ def lammps_gen_graphite_gap(**kwargs):
     verbose = kwargs.get('verbose', False)
     forced = kwargs.get('forced', False)
     # Default constants for the GAP  Potential
-    # todo insert optimised GAP params
-    a_const = kwargs.get('a_const', 2.4175)
-    c_const = kwargs.get('c_const', 3.358)
+    a_const = kwargs.get('a_const', 2.46523652)
+    c_const = kwargs.get('c_const', 3.35293448)
     stacking = kwargs.get('stacking', 'ab')
     filename = kwargs.get('filename', 'lammps.lattice.dat')
     cells = kwargs.get('cells', [1, 1, 1])
