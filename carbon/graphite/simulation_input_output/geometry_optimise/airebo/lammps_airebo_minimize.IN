@@ -1,7 +1,7 @@
 # 
 #          Minimise using the AIREBO potential
 #
-#                Kenny Jolley  Feb 2019
+#                Kenny Jolley  Nov 2022
 
 # Just reads in a lattice data file and minimises using the chosen method
 
@@ -17,13 +17,13 @@ variable input_file   string  'lammps.lattice.dat'    #  Input filename of the l
 
 variable min_method   string  'cg'         #  The minimisation method, chose from: cg, htfn, sd, quickmin, fire
 variable relax_box    equal    true        #  Allow box dimensions to change during relaxation?  (True/False)
-variable force_tol    equal    1.0e-10     #  Minimiser stopping tolerance for force (force units)
+variable force_tol    equal    1.0e-6      #  Minimiser stopping tolerance for force (force units)
 variable max_iters    equal    9999999     #  Maximum no. steps of the minimiser before quitting
 
 variable output_freq  equal    0.05        #  Output period of data in log files [ps]
-variable dump_freq    equal    0.05        #  Output frequency of dump files containing atom coordinates [ps]
+variable dump_freq    equal    1.0         #  Output frequency of dump files containing atom coordinates [ps]
 
-variable atomjiggle   equal    0.01        # Define the amount of random jiggle for atoms [Ang] # This prevents atoms from staying on saddle points
+variable atomjiggle   equal    0.05        # Define the amount of random jiggle for atoms [Ang] # This prevents atoms from staying on saddle points
 
 # Should NOT need to change these variables
 variable sim_timestep equal     0.0005  #  Timestep to use in the MD simulations [ps]
