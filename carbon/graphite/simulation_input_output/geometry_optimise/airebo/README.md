@@ -11,7 +11,10 @@ Run the simulation by calling lammps and directing the input and output accordin
 Replace `lmp` with the name of your executable for lammps.  The simulation should also work fine in parallel.  
 `mpirun -n 4 lmp < lammps_airebo_minimize.IN > output.txt`
 
-The simulation here is a simple geometry optimisation using the conjugate gradient method.  The initial structure is a periodic graphite cell consisting of  3x5x2 Unit cells, with ab stacking. The initial lattice `a` parameter is 2.4175 and initial `c` parameter is 3.358.
+The simulation here is a simple geometry optimisation using the conjugate gradient `'cg'` method.  
+Only the conjugate gradient `'cg'` and steepest descent `'sd'` methods will work when the  `fix box/relax` command is used to vary the size of the simulation cell.
+
+The initial structure is a periodic graphite cell consisting of  3x5x2 Unit cells, with ab stacking. The initial lattice `a` parameter is 2.4175 and initial `c` parameter is 3.358.
 
 
 
