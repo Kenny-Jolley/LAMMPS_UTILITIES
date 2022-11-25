@@ -16,9 +16,10 @@ Only the conjugate gradient `'cg'` and steepest descent `'sd'` methods will work
 
 The initial structure is a periodic graphite cell consisting of  3x5x2 Unit cells, with ab stacking. The initial lattice `a` parameter is 2.4175 and initial `c` parameter is 3.358.
 
+Table summarises the simulation results of this run (top row) and some other similar runs with different lattice sizes.
 
 | Unit Cells (x,y,z) | No. atoms | Initial Box size, Anstroms (x,y,z) | Final Box size, Anstroms (x,y,z) | Optimised `a` lattice param | Optimised `c` lattice param |
 |------------|-----------|----------|----------|----------|----------|
-|  **3x5x2** |  240      | 12.561698481893282 x 12.0875 x 13.432  | 12.561756  x 12.087555  x 13.431989  |  2.417511  |   3.35799725   |
-
+|  **3x5x2** |  **240**       | **12.561698481893282 x 12.0875 x 13.432**  | **12.561756  x 12.087555  x 13.431989**  |  **2.417511**   |   **3.35799725**  |
+|   5x8x3  |   960  | 20.936164136488806 x 19.34 x 20.148 |   20.93626  x  19.340088 x   20.147984 | 2.417511  |  3.357997333 |
 
