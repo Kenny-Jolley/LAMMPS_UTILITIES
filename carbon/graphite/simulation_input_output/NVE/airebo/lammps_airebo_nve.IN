@@ -17,15 +17,15 @@
 
 variable input_file   string  'lammps.lattice.dat'    #  Input filename of the lattice
 
-variable av_temp      equal   300        #  System temperature (imposed by 2*av_temp on the initial velocity dist ONLY)  [K] 
-variable init_eq_time equal    0.1      #  Initial Equilibration time [ps]
+variable av_temp      equal    300        #  System temperature (imposed by 2*av_temp on the initial velocity dist ONLY)  [K] 
+variable init_eq_time equal      0.1      #  Initial Equilibration time [ps]
 
-variable output_freq  equal    0.05       #  Output period of data in log files [ps]
-variable output_av    equal    0.1       #  Running_average output time period [ps]
+variable output_freq  equal      0.05     #  Output period of data in log files [ps]
+variable output_av    equal      0.1      #  Running_average output time period [ps]
 
-variable dump_freq    equal    1.0       #  Output frequency of dump files containing atom coordinates [ps]
+variable dump_freq    equal      1.0      #  Output frequency of dump files containing atom coordinates [ps]
 
-variable runtime      equal   1000.0     #  Simulation runtime [ps] after the Equilibration phase
+variable runtime      equal     10.0      #  Simulation runtime [ps] after the Equilibration phase
 
 # Should NOT need to change these variables
 
