@@ -16,10 +16,22 @@ Only the conjugate gradient `'cg'` and steepest descent `'sd'` methods will work
 
 The initial structure is a periodic graphite cell consisting of  3x5x2 Unit cells, with ab stacking. The initial lattice `a` parameter is 2.4175 and initial `c` parameter is 3.358.
 
-Table summarises the simulation results of this run (top row) and some other similar runs with different lattice sizes.
+Tables summarising the simulation results of this run (top row) and some other similar runs with different lattice sizes.
+For AB stacking, the results are consistent with the default lattice parameters set in the script.
+| Unit Cells (x,y,z) | Stacking |No. atoms | Initial Box size, Anstroms (x,y,z) | Final Box size, Anstroms (x,y,z) | Optimised `a` lattice param | Optimised `c` lattice param | Energy per atom, eV |
+|------------|-----------|-----|-----|----------|----------|----------|---------|
+|  **3x5x2** |  **AB**  | **240**  | **12.561698 x 12.0875 x 13.432**  | **12.561756  x  12.087555  x  13.431989**  |  **2.417511**   |  **3.35799725**  | - |
+|   5x8x3    |  AB      | 960      | 20.936164 x 19.34 x 20.148        |   20.936260  x  19.340088  x  20.147984    |    2.417511     |    3.357997333   | - |
+|   6x10x4   |  AB      | 1920     | 25.123397 x 24.175 x  26.864      |   25.123512  x  24.175111  x  26.863979    |    2.4175111    |    3.357997375   | -7.477 |
 
-| Unit Cells (x,y,z) | Stacking |No. atoms | Initial Box size, Anstroms (x,y,z) | Final Box size, Anstroms (x,y,z) | Optimised `a` lattice param | Optimised `c` lattice param |
-|------------|-----------|-----|-----|----------|----------|----------|
-|  **3x5x2** |  **AB**  | **240**       | **12.561698481893282 x 12.0875 x 13.432**  | **12.561756  x 12.087555  x 13.431989**  |  **2.417511**   |   **3.35799725**  |
-|   5x8x3  |  AB  | 960  | 20.936164136488806 x 19.34 x 20.148 |   20.93626  x  19.340088 x   20.147984 | 2.417511  |  3.357997333 |
+For ABC stacking, the optimal values of the lattice parameters vary very slightly.
 
+| Unit Cells (x,y,z) | Stacking |No. atoms | Initial Box size, Anstroms (x,y,z) | Final Box size, Anstroms (x,y,z) | Optimised `a` lattice param | Optimised `c` lattice param | Energy per atom, eV |
+|------------|-----------|-----|-----|----------|----------|----------|---------|
+|  **3x5x2** |  **ABC**  | **240**  | **-**  | **-**  |  **-**   |   **-**  |- |
+
+AA stacking is high energy and has a larger predicted optimised `c` lattice parameter.
+
+| Unit Cells (x,y,z) | Stacking |No. atoms | Initial Box size, Anstroms (x,y,z) | Final Box size, Anstroms (x,y,z) | Optimised `a` lattice param | Optimised `c` lattice param | Energy per atom, eV |
+|------------|-----------|-----|-----|----------|----------|----------|---------|
+|  **3x5x2** |  **AA**  | **240**  | **-**  | **-**  |  **-**   |   **-**  | - |
