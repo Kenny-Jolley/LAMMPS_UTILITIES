@@ -20,12 +20,12 @@ variable input_file   string  'lammps.lattice.dat'    #  Input filename of the l
 variable av_temp      equal   300        #  System temperature [K] 
 variable init_eq_time equal    10.0      #  Initial Equilibration time [ps]
 
-variable output_freq  equal    0.5       #  Output period of data in log files [ps]
-variable output_av    equal    1.0       #  Running_average output time period [ps]
+variable output_freq  equal     0.5      #  Output period of data in log files [ps]
+variable output_av    equal     1.0      #  Running_average output time period [ps]
 
-variable dump_freq    equal    1.0       #  Output frequency of dump files containing atom coordinates [ps]
+variable dump_freq    equal     1.0      #  Output frequency of dump files containing atom coordinates [ps]
 
-variable runtime      equal   1000.0     #  Simulation runtime [ps] after the Equilibration phase
+variable runtime      equal    10.0      #  Simulation runtime [ps] after the Equilibration phase
 
 # Should NOT need to change these variables
 

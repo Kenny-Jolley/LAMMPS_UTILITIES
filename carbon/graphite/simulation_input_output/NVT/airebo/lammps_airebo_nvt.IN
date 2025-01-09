@@ -1,11 +1,11 @@
 # 
-#          NVE simulation using the AIREBO potential
+#          NVT simulation using the AIREBO potential
 #
 #                     Kenny Jolley  Feb 2019
 
 # 2 Simulation blocks:
 #   - Initial relaxation of the system (to move past transients)
-#   - Equilibrate in NVE and output running average quantities
+#   - Equilibrate in NVT and output running average quantities
 
 # Requires:
 #  CH.airebo
@@ -17,15 +17,15 @@
 
 variable input_file   string  'lammps.lattice.dat'    #  Input filename of the lattice
 
-variable av_temp      equal   300        #  System temperature (imposed by 2*av_temp on the initial velocity dist ONLY)  [K] 
-variable init_eq_time equal    0.1      #  Initial Equilibration time [ps]
+variable av_temp      equal   300        #  System temperature [K] 
+variable init_eq_time equal     0.1      #  Initial Equilibration time [ps]
 
-variable output_freq  equal    0.05       #  Output period of data in log files [ps]
-variable output_av    equal    0.1       #  Running_average output time period [ps]
+variable output_freq  equal     0.05     #  Output period of data in log files [ps]
+variable output_av    equal     0.1      #  Running_average output time period [ps]
 
-variable dump_freq    equal    1.0       #  Output frequency of dump files containing atom coordinates [ps]
+variable dump_freq    equal     1.0      #  Output frequency of dump files containing atom coordinates [ps]
 
-variable runtime      equal   1000.0     #  Simulation runtime [ps] after the Equilibration phase
+variable runtime      equal    10.0      #  Simulation runtime [ps] after the Equilibration phase
 
 # Should NOT need to change these variables
 
@@ -55,18 +55,16 @@ neighbor	2. bin
 neigh_modify	every 10 delay 0 check no
 
 #
-# Initial NVE equilibration
+# Initial NVT equilibration
 #
 print " "
 print "-----------------------------------"
-print "  Begin Initial NVE equilibration"
+print "  Begin Initial NVT equilibration"
 print "-----------------------------------"
 print " "
 
-variable doubleT  equal  ${av_temp}*2
-
-print "Velocities set to a temperature of ${doubleT} K"
-print "Equilibration time ${init_eq_time} ps"
+print "Thermalising at ${av_temp} K"
+print "Thermalisation time ${init_eq_time} ps"
 
 # Set timestep
 timestep ${sim_timestep}
@@ -90,8 +88,8 @@ variable mydensity equal density
 print "Density     : ${mydensity} g/cm^3"
 print " "
 
-# NVE fix
-fix      1  all nve 
+# NVT fix
+fix      1  all nvt temp ${av_temp} ${av_temp} 0.05 
 
 
 # Output data format of the log file
@@ -101,7 +99,7 @@ variable thermo_freq equal ${output_freq}/${sim_timestep}
 thermo          ${thermo_freq}
 thermo_modify lost ignore flush yes
 
-
+variable doubleT  equal  ${av_temp}*2
 velocity all create ${doubleT} ${random_seed} dist gaussian mom yes rot yes
 
 
@@ -114,11 +112,11 @@ print " "
 
 
 #
-# Equilibrate in NVE
+# Equilibrate in NVT
 #
 print " "
 print "-----------------------------------------------"
-print "  Equilibrate in NVE - Outputting running averages to file"
+print "  Equilibrate in NVT - Outputting running averages to file"
 print "-----------------------------------------------"
 print " "
 
