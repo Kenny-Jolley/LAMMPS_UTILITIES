@@ -49,12 +49,13 @@ units           real
 atom_style  charge
 read_data       ${input_file}
 
-# pair_style  reax/c NULL
-# pair_coeff  * * ffield C
+#pair_style  reax/c NULL lgvdw yes
+pair_style  reax/c NULL
+pair_coeff  * * ffield C
 
-pair_style hybrid/overlay reax/c NULL  zbl 1.0 1.15
-pair_coeff * * reax/c ffield C
-pair_coeff * * zbl 6.0 6.0
+#pair_style hybrid/overlay reax/c NULL  zbl 1.0 1.15
+#pair_coeff * * reax/c ffield C
+#pair_coeff * * zbl 6.0 6.0
 
 neighbor       2. bin
 neigh_modify   every 10 delay 0 check no
@@ -135,10 +136,10 @@ compute pe all pe/atom
 
 # Write lattice to output file, custom column format.
 variable dump_freqsteps equal (v_dump_freq/${sim_timestep})
-dump            6 all custom ${dump_freqsteps} dump*.dat.gz id element x y z v_simtime c_ke c_pe
+dump            6 all custom ${dump_freqsteps} dump*.dat.gz id type element x y z v_simtime c_ke c_pe
 # use LBOMD convention for atom names
 #dump_modify     6 element C_
-
+#dump_modify     6 element C H N O
 
 # run equilibration simulation for defined no. of timesteps.
 variable avsteps equal (v_runtime/${sim_timestep})
