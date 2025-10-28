@@ -22,6 +22,7 @@ e.g. if you created a git directory in your home directory, add these lines for 
 ~~~
 setenv PATH ${PATH}:$HOME/git/LAMMPS_UTILITIES/utilities
 setenv PATH ${PATH}:$HOME/git/LAMMPS_UTILITIES/carbon/graphite/scripts
+setenv PATH ${PATH}:$HOME/git/LAMMPS_UTILITIES/carbon
 ~~~
 Or for bash:
 
@@ -29,6 +30,7 @@ Or for bash:
 ~~~
 export PATH=$PATH:$HOME/git/LAMMPS_UTILITIES/utilities
 export PATH=$PATH:$HOME/git/LAMMPS_UTILITIES/carbon/graphite/scripts
+export PATH=$PATH:$HOME/git/LAMMPS_UTILITIES/carbon
 ~~~
 To make sure the python scripts executable, run:  
 ~~~
