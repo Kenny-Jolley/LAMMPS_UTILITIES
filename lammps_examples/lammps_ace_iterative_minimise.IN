@@ -1,0 +1,88 @@
+# Example simulation interative minimisation method  FIRE/conjugate gradient using ACE
+# .....
+
+variable atomjiggle   equal    0.02        #  Define the amount of random jiggle for atoms [Ang] # This prevents atoms from staying on saddle points
+variable restrict_2D  equal    false       #  Forces in Z are fixed to zero, atoms don't get initial displacements in Z. (True/False)
+variable random_seed  equal    56366       #  Seed of the random number generator
+variable relax_box    equal    true        #  Allow box dimensions to change during relaxation?  (True/False)
+
+
+dimension      3
+boundary       p p p
+units          metal
+
+processors 2 2 1
+
+atom_style     atomic
+read_data      mono_vac.dat
+
+
+pair_style              hybrid/overlay pace table linear 10000
+pair_coeff              * * pace c_ace.yace C
+pair_coeff              * * table d2.table D2 9.0
+
+
+neighbor        2. bin
+neigh_modify    every 1 delay 0 check yes one 10000 page 100000
+
+
+# Output frequency of the log file
+thermo          100
+thermo_style    custom step etotal  lx ly lz vol fmax fnorm
+
+
+# Apply the amount of random jiggle for atoms
+if "${restrict_2D}" then &
+ "displace_atoms all random ${atomjiggle} ${atomjiggle} 0.0 ${random_seed} units box"  &
+else &
+  "displace_atoms all random ${atomjiggle} ${atomjiggle} ${atomjiggle} ${random_seed} units box" 
+
+# default fix
+fix 1 all nve
+
+# Define computes for the ke and pe of each atom
+compute ke all ke/atom
+compute pe all pe/atom
+
+
+# Loop settings
+dump 6 all custom 10000 dump*.dat.gz id type element x y z c_ke c_pe
+min_style       cg
+print           "MinStep,CellMinStep,AtomMinStep,FinalStep,Energy,EDiff" file p1_structure.min.csv screen no
+variable        min_eval   equal 1.00e-8
+variable        prev_E     equal 50000.00
+variable        iter       loop 100000
+
+label           loop_min
+min_style       cg
+
+# Relax box?
+if "${relax_box}" then &
+ "fix 2 all box/relax aniso 0.0 vmax 0.01"
+
+minimize        1.0e-15 1.0e-15 100 100000
+
+# Relax box?
+if "${relax_box}" then &
+ "unfix           2"
+
+min_style       fire
+variable        tempstp    equal $(step)
+variable        CellMinStep equal ${tempstp}
+minimize        1.0e-15 1.0e-15 100 100000
+variable        AtomMinStep equal $(step)
+variable        temppe     equal $(pe)
+variable        min_E      equal abs(${prev_E}-${temppe})
+print           "${iter},${CellMinStep},${AtomMinStep},${AtomMinStep},$(pe),${min_E}" append p1_structure.min.csv screen no
+if              "${min_E} < ${min_eval}" then "jump SELF break_min"
+variable        prev_E     equal ${temppe}
+next            iter
+jump            SELF loop_min
+label           break_min
+#undump   structure_xyzmov
+
+# Force lammps to print the final state
+undump 6
+dump 6 all custom 1 dump*.dat.gz id type element x y z c_ke c_pe
+run 0
+
