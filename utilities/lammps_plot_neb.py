@@ -129,27 +129,6 @@ def plot_neb(coords, energies):
         alpha=0.8,
     )
 
-    # Labels for initial/final energies
-    ax.text(
-        coords[0]+0.1,
-        e_initial,
-        f" Initial state = {e_initial:.3f} eV",
-        color="green",
-        va="bottom",
-        ha="left",
-        bbox=dict(fc="white", ec="none", alpha=0.8),
-    )
-
-    ax.text(
-        coords[-1]-0.1,
-        e_final,
-        f" Final state = {e_final:.3f} eV",
-        color="tab:blue",
-        va="bottom",
-        ha="right",
-        bbox=dict(fc="white", ec="none", alpha=0.8),
-    )
-
     # Forward barrier (vertical arrow)
     x_forward = ts_coord - 0.03 * (coords.max() - coords.min())
 
@@ -198,6 +177,26 @@ def plot_neb(coords, energies):
         bbox=dict(fc="white", ec="none", alpha=0.8),
     )
 
+    # Labels for initial/final energies
+    ax.text(
+        coords[0] + 0.1,
+        e_initial,
+        f" Initial state = {e_initial:.3f} eV",
+        color="green",
+        va="bottom",
+        ha="left",
+        bbox=dict(fc="white", ec="none", alpha=0.8),
+    )
+
+    ax.text(
+        coords[-1] - 0.1,
+        e_final,
+        f" Final state = {e_final:.3f} eV",
+        color="tab:blue",
+        va="bottom",
+        ha="right",
+        bbox=dict(fc="white", ec="none", alpha=0.8),
+    )
 
     ax.set_xlabel("Reaction Coordinate")
     ax.set_ylabel("Energy (eV)")
