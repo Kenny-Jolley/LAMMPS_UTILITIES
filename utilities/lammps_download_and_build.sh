@@ -101,18 +101,18 @@ echo
 echo "CHECK THE ABOVE INFORMATION"
 read -r -p "Is this build environment OK? [y/N\]: " response
 
-case "${response,,}" in
-	y|yes)
-		echo "Continuing..."
-		;;
-	n|no|"")
-		echo "Exiting."
-		exit 1
-		;;
-	*)
-		echo "Invalid response. Exiting."
-		exit 1
-		;;
+case "$response" in
+    [Yy]|[Yy][Ee][Ss])
+        echo "Continuing..."
+        ;;
+    [Nn]|[Nn][Oo]|"")
+        echo "Exiting."
+        exit 1
+        ;;
+    *)
+        echo "Invalid response. Exiting."
+        exit 1
+        ;;
 esac
 
 
