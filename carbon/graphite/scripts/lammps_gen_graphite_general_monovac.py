@@ -25,8 +25,9 @@ import math
 import datetime
 import numpy as np
 '''from numba import jit'''
-from random import seed
-from random import randint
+import random
+#from random import seed
+#from random import randint
 
 
 def lammps_gen_graphite_general_monovac(**kwargs):
@@ -317,7 +318,7 @@ def lammps_gen_graphite_general_monovac(**kwargs):
     # loop over layers and delete the required number of atoms, then reconstruct the defect to 5-9 rings
     if verbose:
         print("> Creating and reconstructing mono-vacancies")
-    seed(datetime.datetime.now())
+    random.seed()
     for la in range(cells[2] * len(stacking)):
         id_lo = la * atoms_per_layer
         id_hi = (la + 1) * atoms_per_layer
@@ -325,7 +326,7 @@ def lammps_gen_graphite_general_monovac(**kwargs):
 
         for vac in range(mono_vacs_layers[la]):
             # get a random element
-            r = randint(0, len(valid_list)-1)
+            r = random.randint(0, len(valid_list)-1)
             # delete atom and flag it and the NN's
             deleted_atom = valid_list[r]
             '''print(la, vac,  r, deleted_atom, atoms_NN[deleted_atom], atoms_NNN[deleted_atom])
@@ -349,7 +350,7 @@ def lammps_gen_graphite_general_monovac(**kwargs):
             # reconstruct the defect
 
             # select two random neighbours
-            fixed = randint(0, 2)
+            fixed = random.randint(0, 2)
             vac_nn = atoms_NN[deleted_atom]
             vac_nn = np.delete(vac_nn, fixed)
 
